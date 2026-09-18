@@ -39,7 +39,7 @@ export default function PortalEntry() {
   return (
     <div className="grid min-h-screen place-items-center bg-surface-muted px-6">
       <div className="w-full max-w-md text-center">
-        <img src="/wonderfleet.svg" alt="" className="mx-auto h-12 w-12" />
+        <img src="/wonderfleet-logo.png" alt="WonderFleet" className="mx-auto h-11 w-auto" />
         <p className="mt-3 font-display text-xl font-bold text-brand-900">WonderFleet</p>
         {error ? (
           <div className="mt-6 rounded-2xl border border-critical-100 bg-critical-50 p-5 text-sm text-critical-700">

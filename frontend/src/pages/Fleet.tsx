@@ -30,7 +30,7 @@ export default function Fleet() {
         title="Fleet management"
         subtitle="Every vehicle, its current shipment and live cargo conditions."
         action={
-          <Link to="/fleet/new" className="btn-primary">
+          <Link to="/fleet/new" className="btn-accent">
             <Plus size={16} /> Add a fleet
           </Link>
         }
@@ -126,7 +126,7 @@ export default function Fleet() {
             title="No vehicles match this view"
             description="Register a vehicle and schedule its first shipment with the Add a Fleet wizard."
             action={
-              <Link to="/fleet/new" className="btn-primary">
+              <Link to="/fleet/new" className="btn-accent">
                 <Plus size={16} /> Add a fleet
               </Link>
             }

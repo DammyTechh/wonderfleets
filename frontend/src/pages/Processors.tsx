@@ -27,7 +27,7 @@ export default function Processors() {
             <button className="btn-secondary" onClick={() => download('/agro-processors/export', { search: search || undefined })}>
               <Download size={16} /> Export
             </button>
-            <button className="btn-primary" onClick={() => setCreating(true)}>
+            <button className="btn-accent" onClick={() => setCreating(true)}>
               <Plus size={16} /> Add processor
             </button>
           </div>
@@ -81,7 +81,7 @@ export default function Processors() {
             icon={<Sprout size={20} />}
             title="No agro-processors yet"
             description="Add the produce owners you move goods for — a shipment cannot be booked without one."
-            action={<button className="btn-primary" onClick={() => setCreating(true)}><Plus size={16} /> Add processor</button>}
+            action={<button className="btn-accent" onClick={() => setCreating(true)}><Plus size={16} /> Add processor</button>}
           />
         )}
       </Card>

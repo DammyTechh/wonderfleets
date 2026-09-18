@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import {
-  Bell, ChartNoAxesColumn, CircleAlert, LayoutDashboard, LogOut, MapPinned, Menu, Settings,
-  Sprout, Truck, Users, X,
+  Bell, ChartNoAxesColumn, ChevronDown, CircleAlert, Handshake, LayoutDashboard, LogOut,
+  MapPinned, Menu, Settings, Sprout, Truck, Users, X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -9,15 +9,36 @@ import { useAuth } from '@/lib/auth'
 import { useUnreadCount } from '@/lib/queries'
 import { Avatar } from './ui'
 
-const navigation = [
+/**
+ * Sidebar structure follows the Figma exactly:
+ *   Dashboard / Fleet Management / Live Tracking
+ *   -- OPERATIONS --
+ *   Partners (expands to Logistics partners, Agro-Processors)
+ *   Analytics / Alerts
+ *   ...pinned to the bottom: Settings, Log out
+ */
+const primaryNav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/fleet', label: 'Fleet management', icon: Truck },
-  { to: '/tracking', label: 'Live tracking', icon: MapPinned },
+  { to: '/fleet', label: 'Fleet Management', icon: Truck },
+  { to: '/tracking', label: 'Live Tracking', icon: MapPinned },
+]
+
+const partnerNav = [
   { to: '/partners', label: 'Logistics partners', icon: Users },
-  { to: '/processors', label: 'Agro-processors', icon: Sprout },
+  { to: '/processors', label: 'Agro-Processors', icon: Sprout },
+]
+
+const operationsNav = [
   { to: '/analytics', label: 'Analytics', icon: ChartNoAxesColumn },
   { to: '/alerts', label: 'Alerts', icon: CircleAlert },
 ]
+
+/** Full-bleed green pill when active -- the Figma has no inset or rounded corners here. */
+const itemClass = ({ isActive }: { isActive: boolean }) =>
+  clsx(
+    'flex items-center gap-3 px-5 py-3 text-sm font-medium transition',
+    isActive ? 'bg-brand-500 text-white' : 'text-navy-dim hover:bg-white/[.06] hover:text-white',
+  )
 
 export function AppShell() {
   const { admin, signOut } = useAuth()
@@ -26,99 +47,142 @@ export function AppShell() {
   const [open, setOpen] = useState(false)
   const unread = useUnreadCount()
 
+  const inPartners = location.pathname.startsWith('/partners') || location.pathname.startsWith('/processors')
+  const [partnersOpen, setPartnersOpen] = useState(inPartners)
+
   useEffect(() => setOpen(false), [location.pathname])
+  useEffect(() => { if (inPartners) setPartnersOpen(true) }, [inPartners])
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[264px_1fr]">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand-900 focus:px-4 focus:py-2 focus:text-white">
+    <div className="min-h-screen bg-surface-muted lg:grid lg:grid-cols-[240px_1fr]">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand-500 focus:px-4 focus:py-2 focus:text-white"
+      >
         Skip to content
       </a>
 
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-40 w-[264px] border-r border-line bg-surface transition-transform lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col bg-navy transition-transform lg:static lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-16 items-center gap-2.5 border-b border-line px-5">
-          <img src="/wonderfleet.svg" alt="" className="h-9 w-9" />
-          <div>
-            <p className="font-display text-[17px] font-bold leading-none text-brand-900">WonderFleet</p>
-            <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-ink-faint">OfeminiAgricTech</p>
-          </div>
-          <button className="btn-ghost ml-auto p-1.5 lg:hidden" onClick={() => setOpen(false)} aria-label="Close menu">
+        {/* Logo lock-up on navy -- transparent PNG, never the white-background file. */}
+        <div className="flex h-[72px] items-center px-5">
+          <img src="/wonderfleet-logo.png" alt="WonderFleet" className="h-8 w-auto" />
+          <button
+            className="ml-auto rounded-lg p-1.5 text-navy-dim hover:bg-white/10 hover:text-white lg:hidden"
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+          >
             <X size={18} />
           </button>
         </div>
 
-        <nav className="space-y-1 p-3" aria-label="Main">
-          {navigation.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                clsx(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-                  isActive ? 'bg-brand-50 text-brand-800' : 'text-ink-soft hover:bg-surface-sunken hover:text-ink',
-                )
-              }
-            >
-              <Icon size={18} />
-              {label}
+        <nav className="flex-1 overflow-y-auto pb-4" aria-label="Main">
+          {primaryNav.map(({ to, label, icon: Icon, end }) => (
+            <NavLink key={to} to={to} end={end} className={itemClass}>
+              <Icon size={18} /> {label}
+            </NavLink>
+          ))}
+
+          <p className="px-5 pb-1 pt-5 text-[10px] font-semibold uppercase tracking-[.09em] text-navy-label">
+            Operations
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setPartnersOpen((v) => !v)}
+            aria-expanded={partnersOpen}
+            className={clsx(
+              'flex w-full items-center gap-3 px-5 py-3 text-sm font-medium transition',
+              inPartners ? 'bg-brand-500 text-white' : 'text-navy-dim hover:bg-white/[.06] hover:text-white',
+            )}
+          >
+            <Handshake size={18} /> Partners
+            <ChevronDown size={16} className={clsx('ml-auto transition-transform', partnersOpen && 'rotate-180')} />
+          </button>
+
+          {partnersOpen &&
+            partnerNav.map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  clsx(
+                    'flex items-center gap-2.5 py-2.5 pl-11 pr-5 text-[13px] transition',
+                    isActive ? 'font-medium text-white' : 'text-navy-dim hover:text-white',
+                  )
+                }
+              >
+                <Icon size={15} /> {label}
+              </NavLink>
+            ))}
+
+          {operationsNav.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} className={itemClass}>
+              <Icon size={18} /> {label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="absolute inset-x-0 bottom-0 border-t border-line p-3">
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              clsx('flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-                isActive ? 'bg-brand-50 text-brand-800' : 'text-ink-soft hover:bg-surface-sunken hover:text-ink')
-            }
-          >
+        <div className="pb-4">
+          <NavLink to="/settings" className={itemClass}>
             <Settings size={18} /> Settings
           </NavLink>
           <button
-            className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-soft transition hover:bg-critical-50 hover:text-critical-700"
+            className="flex w-full items-center gap-3 px-5 py-3 text-sm font-medium text-navy-dim transition hover:bg-white/[.06] hover:text-white"
             onClick={async () => {
               await signOut()
               navigate('/sign-in')
             }}
           >
-            <LogOut size={18} /> Sign out
+            <LogOut size={18} /> Log out
           </button>
         </div>
       </aside>
 
-      {open && <div className="fixed inset-0 z-30 bg-ink/20 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && <div className="fixed inset-0 z-30 bg-ink/30 lg:hidden" onClick={() => setOpen(false)} />}
 
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur lg:px-8">
-          <button className="btn-ghost p-2 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
+        {/* The Figma has no full-width chrome bar -- the bell and account sit inline
+            with the page heading, so this strip is transparent and borderless. */}
+        <header className="sticky top-0 z-20 flex h-[72px] items-center gap-3 bg-surface-muted/90 px-4 backdrop-blur lg:px-8">
+          <button
+            className="rounded-lg p-2 text-ink-soft hover:bg-surface-sunken lg:hidden"
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+          >
             <Menu size={20} />
           </button>
-          <div className="ml-auto flex items-center gap-2">
-            <NavLink to="/notifications" className="btn-ghost relative p-2" aria-label="Notifications">
-              <Bell size={20} />
+          <div className="ml-auto flex items-center gap-3">
+            <NavLink
+              to="/notifications"
+              className="relative grid h-9 w-9 place-items-center rounded-lg border border-line bg-surface text-ink-soft hover:text-ink"
+              aria-label="Notifications"
+            >
+              <Bell size={18} />
               {(unread.data?.unread ?? 0) > 0 && (
-                <span className="tabular absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-critical-600 px-1 text-[11px] font-semibold text-white">
+                <span className="tabular absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-critical-500 px-1 text-[10px] font-semibold text-white">
                   {Math.min(unread.data!.unread, 99)}
                 </span>
               )}
             </NavLink>
-            <NavLink to="/settings" className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-surface-sunken">
-              <Avatar initials={admin?.fullName?.slice(0, 2).toUpperCase() ?? 'WF'} photoUrl={admin?.photoUrl} size={34} />
+            {/* Account block sits over a thin green rule in the Figma. */}
+            <NavLink to="/settings" className="flex items-center gap-2.5 border-b-2 border-brand-500 px-1 pb-1">
+              <Avatar initials={admin?.fullName?.slice(0, 2).toUpperCase() ?? 'WF'} photoUrl={admin?.photoUrl} size={30} />
               <span className="hidden text-left sm:block">
-                <span className="block text-sm font-semibold leading-tight">{admin?.fullName ?? 'Administrator'}</span>
-                <span className="block text-xs text-ink-faint">{admin?.adminCode}</span>
+                <span className="block text-[13px] font-semibold leading-tight text-ink">
+                  {admin?.fullName ?? 'Administrator'}
+                </span>
+                <span className="block text-[11px] text-ink-faint">Admin</span>
               </span>
             </NavLink>
           </div>
         </header>
 
-        <main id="main" className="flex-1 px-4 py-6 lg:px-8">
+        <main id="main" className="flex-1 px-4 pb-8 lg:px-8">
           <Outlet />
         </main>
       </div>

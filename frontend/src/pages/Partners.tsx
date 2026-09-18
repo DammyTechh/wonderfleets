@@ -30,7 +30,7 @@ export default function Partners() {
             <button className="btn-secondary" onClick={() => download('/logistics-partners/export', { search: search || undefined })}>
               <Download size={16} /> Export
             </button>
-            <button className="btn-primary" onClick={() => setCreating(true)}>
+            <button className="btn-accent" onClick={() => setCreating(true)}>
               <Plus size={16} /> Add partner
             </button>
           </div>

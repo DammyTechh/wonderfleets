@@ -16,6 +16,8 @@
   /* Readings and codes line up in tables. */
   .tabular { font-variant-numeric: tabular-nums; }
   ::selection { @apply bg-brand-200 text-brand-950; }
+  /* Record identifiers (WF-1234, TRK-1287) read as accent blue in the Figma. */
+  .code-id { @apply font-medium text-accent tabular; }
 }
 
 @layer components {
@@ -30,7 +32,9 @@
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
            transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60;
   }
-  .btn-primary { @apply btn bg-brand-900 text-white hover:bg-brand-800 focus:ring-brand-500/20; }
+  /* Figma: primary actions are the solid brand green (#63883C). */
+  .btn-primary { @apply btn bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-500/25; }
+  .btn-accent { @apply btn bg-accent text-white hover:bg-accent-600 focus:ring-accent/25; }
   .btn-secondary { @apply btn border border-line bg-surface text-ink hover:bg-surface-muted focus:ring-brand-500/10; }
   .btn-ghost { @apply btn text-ink-soft hover:bg-surface-sunken hover:text-ink; }
   .btn-danger { @apply btn bg-critical-600 text-white hover:bg-critical-700 focus:ring-critical-500/25; }

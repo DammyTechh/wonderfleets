@@ -34,12 +34,9 @@ export default function SignIn() {
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-2.5">
-            <img src="/wonderfleet.svg" alt="" className="h-11 w-11" />
-            <div>
-              <p className="font-display text-xl font-bold leading-none text-brand-900">WonderFleet</p>
-              <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-ink-faint">OfeminiAgricTech</p>
-            </div>
+          <div className="mb-8">
+            <img src="/wonderfleet-logo.png" alt="WonderFleet" className="h-10 w-auto" />
+            <p className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink-faint">OfeminiAgricTech</p>
           </div>
 
           <h1 className="text-2xl font-bold">Sign in</h1>

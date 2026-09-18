@@ -22,16 +22,15 @@ export function PortalShell({
   if (!session) return <Navigate to="/track" replace />
   return (
     <div className="min-h-screen bg-surface-muted">
-      <header className="border-b border-line bg-surface">
+      <header className="bg-navy">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-4 lg:px-8">
-          <img src="/wonderfleet.svg" alt="" className="h-10 w-10" />
+          <img src="/wonderfleet-logo.png" alt="WonderFleet" className="h-8 w-auto" />
           <div className="min-w-0 flex-1">
-            <p className="font-display text-lg font-bold leading-tight text-brand-900">WonderFleet</p>
-            <p className="truncate text-sm text-ink-soft">
+            <p className="truncate text-sm text-navy-dim">
               {session.organisationName} · {subtitle}
             </p>
           </div>
-          <span className="chip border-line bg-surface-muted text-ink-soft">
+          <span className="chip border-transparent bg-white/10 text-navy-dim">
             <Clock size={13} /> Link valid until {dt(session.linkExpiresAt)}
           </span>
         </div>

@@ -45,7 +45,7 @@ export function StatCard({
 }) {
   const tones = {
     default: 'bg-surface-sunken text-ink-soft',
-    brand: 'bg-brand-50 text-brand-700',
+    brand: 'bg-brand-100 text-brand-700',
     critical: 'bg-critical-50 text-critical-700',
     warning: 'bg-warning-50 text-warning-700',
   } as const
@@ -77,28 +77,29 @@ export function StatCard({
   )
 }
 
+// Figma status pills: tinted fill, matching text, no border.
 const statusStyles: Record<string, string> = {
-  Normal: 'border-brand-100 bg-brand-50 text-brand-700',
-  Critical: 'border-critical-100 bg-critical-50 text-critical-700',
-  Warning: 'border-warning-100 bg-warning-50 text-warning-700',
-  Offline: 'border-line-strong bg-surface-sunken text-ink-soft',
-  Idle: 'border-line-strong bg-surface-sunken text-ink-soft',
-  Informational: 'border-info-100 bg-info-50 text-info-700',
-  Active: 'border-brand-100 bg-brand-50 text-brand-700',
-  Pending: 'border-warning-100 bg-warning-50 text-warning-700',
-  Suspended: 'border-critical-100 bg-critical-50 text-critical-700',
-  InTransit: 'border-info-100 bg-info-50 text-info-700',
-  Scheduled: 'border-line-strong bg-surface-sunken text-ink-soft',
-  Stopped: 'border-warning-100 bg-warning-50 text-warning-700',
-  Delayed: 'border-warning-100 bg-warning-50 text-warning-700',
-  Completed: 'border-brand-100 bg-brand-50 text-brand-700',
-  Cancelled: 'border-line-strong bg-surface-sunken text-ink-faint',
-  Resolved: 'border-brand-100 bg-brand-50 text-brand-700',
-  Acknowledged: 'border-info-100 bg-info-50 text-info-700',
+  Normal: 'border-transparent bg-normal-100 text-normal-700',
+  Critical: 'border-transparent bg-critical-100 text-critical-700',
+  Warning: 'border-transparent bg-warning-100 text-warning-700',
+  Offline: 'border-transparent bg-offline-100 text-offline-500',
+  Idle: 'border-transparent bg-offline-100 text-offline-500',
+  Informational: 'border-transparent bg-info-100 text-info-700',
+  Active: 'border-transparent bg-normal-100 text-normal-700',
+  Pending: 'border-transparent bg-warning-100 text-warning-700',
+  Suspended: 'border-transparent bg-critical-100 text-critical-700',
+  InTransit: 'border-transparent bg-info-100 text-info-700',
+  Scheduled: 'border-transparent bg-offline-100 text-offline-500',
+  Stopped: 'border-transparent bg-critical-100 text-critical-700',
+  Delayed: 'border-transparent bg-warning-100 text-warning-700',
+  Completed: 'border-transparent bg-normal-100 text-normal-700',
+  Cancelled: 'border-transparent bg-offline-100 text-offline-500',
+  Resolved: 'border-transparent bg-normal-100 text-normal-700',
+  Acknowledged: 'border-transparent bg-info-100 text-info-700',
 }
 
 const dotStyles: Record<string, string> = {
-  Normal: 'bg-brand-500',
+  Normal: 'bg-normal-500',
   Critical: 'bg-critical-500',
   Warning: 'bg-warning-500',
   Offline: 'bg-ink-faint',
