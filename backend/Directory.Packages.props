@@ -2,6 +2,8 @@
   <!-- Central Package Management: every version lives here, projects reference packages without versions. -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Makes the MimeKit pin below authoritative even though it arrives transitively. -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
     <!-- Data -->
@@ -25,7 +27,11 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <!-- Integrations -->
     <PackageVersion Include="Google.Apis.Auth" Version="1.70.0" />
-    <PackageVersion Include="MailKit" Version="4.13.0" />
+    <!-- 4.16.0 patches GHSA-9j88-vvj5-vhgr (MailKit STARTTLS response injection).
+         MimeKit is pinned explicitly because it arrives transitively via MailKit and
+         NuGet audit flags transitive packages too: 4.15.1+ patches GHSA-g7hc-96xr-gvvx. -->
+    <PackageVersion Include="MailKit" Version="4.16.0" />
+    <PackageVersion Include="MimeKit" Version="4.16.0" />
     <PackageVersion Include="QuestPDF" Version="2025.7.0" />
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <!-- Tests -->

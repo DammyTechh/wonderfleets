@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="Google.Apis.Auth" />
     <PackageReference Include="MailKit" />
+    <!-- Used directly in Notifications/Senders.cs; referenced explicitly rather than relied on transitively. -->
+    <PackageReference Include="MimeKit" />
     <PackageReference Include="QuestPDF" />
     <PackageReference Include="CsvHelper" />
   </ItemGroup>

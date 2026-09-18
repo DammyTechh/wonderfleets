@@ -99,18 +99,22 @@ alarm locally even without GSM coverage.
 
 ## Running it locally
 
+> Run every command below from the **repository root** (`wonderfleets/`), not from
+> `backend/`. `deploy/` sits at the root, so `-f deploy/docker-compose.yml` only
+> resolves from there.
+
 ```bash
-# 1. database
+# 1. database  (from the repository root)
 docker compose -f deploy/docker-compose.yml up -d db
 
 # 2. configuration
 cp deploy/.env.example .env            # then fill in the keys you have
 
 # 3. backend  (applies the migrations and seeds the administrator on first run)
-cd backend && dotnet run --project src/WonderFleet.Api
+dotnet run --project backend/src/WonderFleet.Api
 
 # 4. frontend  (in a second terminal)
-cd frontend && npm install && npm run dev
+npm --prefix frontend install && npm --prefix frontend run dev
 ```
 
 Or the whole stack in Docker:
