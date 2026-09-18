@@ -1,0 +1,100 @@
+paths:
+  /auth/login:
+    post:
+      tags:
+      - Authentication
+      summary: Sign in as an administrator
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401':
+          description: Wrong credentials, or the account is locked or disabled.
+          content:
+            application/problem+json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Problem
+        '403': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Signed in.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AuthResult
+        '429':
+          $ref: ./../components/responses.yaml#/components/responses/TooManyRequests
+      operationId: login
+      description: 'WonderFleet has no administrator registration: the account is seeded by the platform. Returns a 15-minute
+        access token plus a rotating refresh token (also set as the HttpOnly `wf_rt` cookie). Five failed attempts lock the
+        account for 15 minutes.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/LoginRequest
+      security: &id003 []
+  /auth/refresh:
+    post:
+      tags:
+      - Authentication
+      summary: Exchange a refresh token
+      responses:
+        '400': *id001
+        '401':
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': *id002
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AuthResult
+        '429':
+          $ref: ./../components/responses.yaml#/components/responses/TooManyRequests
+      operationId: refresh
+      description: Refresh tokens rotate on every use. Re-using a consumed token revokes the whole token family.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/RefreshRequest
+      security: *id003
+  /auth/logout:
+    post:
+      tags:
+      - Authentication
+      summary: Sign out
+      responses:
+        '400': *id001
+        '401': &id004
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': *id002
+        '204':
+          $ref: ./../components/responses.yaml#/components/responses/NoContent
+      operationId: logout
+      description: Revokes the refresh token family and clears the cookie.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/RefreshRequest
+      security: *id003
+  /auth/me:
+    get:
+      tags:
+      - Authentication
+      summary: The signed-in administrator
+      responses:
+        '400': *id001
+        '401': *id004
+        '403': *id002
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AdminProfile
+      operationId: currentAdmin

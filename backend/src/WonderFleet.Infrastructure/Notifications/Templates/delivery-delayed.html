@@ -1,0 +1,38 @@
+<!-- subject: Delay on shipment {{TripCode}} — {{Route}} -->
+<h1 style="margin:0 0 12px;font-size:20px;line-height:28px;color:#B54708;">Shipment running late</h1>
+<p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#1f2a24;">Hello {{Name}}, {{TripCode}} has not arrived by the expected time. The team has been notified.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e6ece9;border-bottom:1px solid #e6ece9;margin-bottom:18px;">
+              {{#TripCode}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Shipment</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{TripCode}}</td>
+              </tr>{{/TripCode}}
+              {{#FleetNumber}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Fleet</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{FleetNumber}}</td>
+              </tr>{{/FleetNumber}}
+              {{#Route}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Route</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Route}}</td>
+              </tr>{{/Route}}
+              {{#ExpectedArrival}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Expected arrival</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{ExpectedArrival}}</td>
+              </tr>{{/ExpectedArrival}}
+              {{#DelayDuration}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Delay so far</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{DelayDuration}}</td>
+              </tr>{{/DelayDuration}}
+              {{#LastPosition}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Last known position</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{LastPosition}}</td>
+              </tr>{{/LastPosition}}
+              {{#DriverName}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Driver</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{DriverName}}</td>
+              </tr>{{/DriverName}}
+</table>
+{{#ActionUrl}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
+  <tr><td style="background:#B54708;border-radius:8px;">
+    <a href="{{ActionUrl}}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">Open live tracking</a>
+  </td></tr>
+</table>{{/ActionUrl}}

@@ -1,0 +1,66 @@
+paths:
+  /analytics:
+    get:
+      tags:
+      - Analytics
+      summary: Analytics overview
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AnalyticsOverview
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getAnalytics
+      description: Sensor uptime, temperature and humidity compliance, estimated spoilage, average temperature against the
+        threshold, average humidity against the safe band, trips by partner, device health and weather intelligence.
+      parameters:
+      - name: period
+        in: query
+        schema:
+          type: string
+          enum:
+          - week
+          - month
+          - quarter
+          - year
+          default: month
+        description: Reporting window.
+      - name: deviceId
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Restrict to one device.
+  /analytics/devices:
+    get:
+      tags:
+      - Analytics
+      summary: Device selector options
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    label:
+                      type: string
+      operationId: analyticsDevices

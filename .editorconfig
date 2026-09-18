@@ -1,0 +1,23 @@
+root = true
+
+[*]
+indent_style = space
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.cs]
+indent_size = 4
+dotnet_sort_system_directives_first = true
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_prefer_braces = when_multiline:suggestion
+dotnet_style_readonly_field = true:warning
+dotnet_diagnostic.IDE0005.severity = none
+dotnet_diagnostic.IDE0055.severity = none
+
+[*.{json,yml,yaml,csproj,props}]
+indent_size = 2
+
+[*.sql]
+indent_size = 4

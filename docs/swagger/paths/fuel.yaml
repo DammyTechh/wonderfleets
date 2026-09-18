@@ -1,0 +1,162 @@
+paths:
+  /fuel/estimate:
+    post:
+      tags:
+      - Fuel planning
+      summary: Estimate fuel for a journey
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/FuelEstimate
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: estimateFuel
+      description: Used by the Add a Fleet wizard before the shipment exists. The model combines the vehicle class and payload
+        with the live route (distance, driving time and the free-flow time that reveals traffic), the forecast along the way
+        (cab and engine heat, rain) and the cooling unit, which burns fuel per hour both on the road and while parked. Missing
+        route or weather data lowers `confidence` and is listed in `assumptions` rather than failing the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/FuelEstimateRequest
+  /fuel/prices:
+    get:
+      tags:
+      - Fuel planning
+      summary: Current pump prices
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./../components/schemas.yaml#/components/schemas/FuelPrice
+      operationId: fuelPrices
+  /fuel/prices/{fuelType}:
+    put:
+      tags:
+      - Fuel planning
+      summary: Update a pump price
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/FuelPrice
+      operationId: updateFuelPrice
+      description: Estimates store the price they used, so changing this does not rewrite historic figures.
+      parameters:
+      - name: fuelType
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - Diesel
+          - Petrol
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/UpdateFuelPriceRequest
+  /trips/{id}/fuel:
+    get:
+      tags:
+      - Fuel planning
+      summary: Fuel plan and reconciliation for a shipment
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripFuelSummary
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getTripFuel
+      description: Returns the stored plan, what was actually recorded, and the variance between them.
+      parameters: &id004
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /trips/{id}/fuel/estimate:
+    post:
+      tags:
+      - Fuel planning
+      summary: Re-plan fuel for a shipment
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/FuelEstimate
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '502':
+          $ref: ./../components/responses.yaml#/components/responses/BadGateway
+      operationId: reestimateTripFuel
+      description: Recomputes against live traffic and the current forecast, stores the result and updates the shipment's
+        planned fuel. A moving truck is re-planned from its current position.
+      parameters: *id004
+  /trips/{id}/fuel/actual:
+    post:
+      tags:
+      - Fuel planning
+      summary: Record the fuel actually used
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripFuelSummary
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: recordTripFuel
+      description: A real fuel figure is a better emission number than any per-kilometre average, so CO2 for the shipment
+        is recomputed from the litres burnt.
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/RecordFuelRequest

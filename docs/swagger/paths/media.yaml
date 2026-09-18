@@ -1,0 +1,40 @@
+paths:
+  /media:
+    get:
+      tags:
+      - Media
+      summary: Fetch a signed media file
+      responses:
+        '400':
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          $ref: ./../components/responses.yaml#/components/responses/FileDownload
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getMedia
+      description: Photos and documents are served through short-lived signed URLs; storage paths are never public.
+      parameters:
+      - name: p
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Storage path.
+      - name: e
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Expiry, Unix seconds.
+      - name: s
+        in: query
+        required: true
+        schema:
+          type: string
+        description: HMAC signature.
+      security: []

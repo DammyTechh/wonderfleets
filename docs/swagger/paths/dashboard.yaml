@@ -1,0 +1,23 @@
+paths:
+  /dashboard:
+    get:
+      tags:
+      - Dashboard
+      summary: Operational overview
+      responses:
+        '400':
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: getDashboard
+      description: Active trips, open alerts, live average temperature and humidity, CO2 for the last 30 days, Route AI summary,
+        map markers, tracking status counts, the active fleet list and the sensor sync banner.

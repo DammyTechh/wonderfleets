@@ -1,0 +1,218 @@
+paths:
+  /trips:
+    get:
+      tags:
+      - Shipments
+      summary: List shipments
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/PagedTrips
+      operationId: listTrips
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/page
+      - $ref: ./../components/responses.yaml#/components/parameters/pageSize
+      - $ref: ./../components/responses.yaml#/components/parameters/search
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - Scheduled
+          - InTransit
+          - Stopped
+          - Delayed
+          - Completed
+          - Cancelled
+      - name: partnerId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: agroProcessorId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: vehicleId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: openOnly
+        in: query
+        schema:
+          type: boolean
+        description: Only shipments that have not ended.
+  /trips/{id}:
+    get:
+      tags:
+      - Shipments
+      summary: Shipment detail
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripDetail
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getTrip
+      parameters: &id004
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Shipment id.
+  /trips/{id}/start:
+    post:
+      tags:
+      - Shipments
+      summary: Dispatch the shipment
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripDetail
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: startTrip
+      description: Requires a monitoring device. Notifies the transporter and the produce owner by email.
+      parameters: *id004
+  /trips/{id}/complete:
+    post:
+      tags:
+      - Shipments
+      summary: Mark delivered
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripDetail
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: completeTrip
+      description: Closes open alerts, frees the driver, expires the share links for this trip and emails a delivery summary.
+      parameters: *id004
+  /trips/{id}/cancel:
+    post:
+      tags:
+      - Shipments
+      summary: Cancel the shipment
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripDetail
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: cancelTrip
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/CancelTripRequest
+  /trips/{id}/thresholds:
+    put:
+      tags:
+      - Shipments
+      summary: Change the cargo limits
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripDetail
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: updateTripThresholds
+      description: Also pushes the new limits to the device so it can alarm locally without GSM coverage.
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/Thresholds
+  /trips/{id}/assignment:
+    put:
+      tags:
+      - Shipments
+      summary: Reassign driver, device or ETA
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/TripDetail
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: assignTrip
+      description: A new ETA on a delayed shipment clears the delay alert.
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/AssignTripResourcesRequest

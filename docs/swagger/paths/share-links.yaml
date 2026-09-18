@@ -1,0 +1,90 @@
+paths:
+  /share-links:
+    post:
+      tags:
+      - Partner access
+      summary: Generate a tracking link
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '201':
+          description: Link generated.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/ShareLinkCreated
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: createShareLink
+      description: Creates a temporary link that requires no login and expires after the trip ends (or at `expiresAt`, whichever
+        comes first). The transporter and the produce owner receive different dashboards. The token is only present in the
+        returned URL and is stored hashed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/CreateShareLinkRequest
+    get:
+      tags:
+      - Partner access
+      summary: List tracking links
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./../components/schemas.yaml#/components/schemas/ShareLink
+      operationId: listShareLinks
+      parameters:
+      - name: partnerId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: audience
+        in: query
+        schema:
+          type: string
+          enum:
+          - LogisticsPartner
+          - AgroProcessor
+      - name: activeOnly
+        in: query
+        schema:
+          type: boolean
+  /share-links/{id}/revoke:
+    post:
+      tags:
+      - Partner access
+      summary: Revoke a tracking link
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '204':
+          $ref: ./../components/responses.yaml#/components/responses/NoContent
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: revokeShareLink
+      description: Takes effect immediately, including for portal sessions already open.
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/id
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/RevokeShareLinkRequest

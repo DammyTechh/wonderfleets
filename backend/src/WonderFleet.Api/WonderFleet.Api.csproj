@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>WonderFleet.Api</RootNamespace>
+    <UserSecretsId>wonderfleet-api</UserSecretsId>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WonderFleet.Application\WonderFleet.Application.csproj" />
+    <ProjectReference Include="..\WonderFleet.Infrastructure\WonderFleet.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Hand-written OpenAPI documents (docs/swagger) and the SQL migrations ship with the app. -->
+    <Content Include="..\..\..\docs\swagger\**\*" LinkBase="docs\swagger" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\db\migrations\*.sql" LinkBase="db\migrations" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,1395 @@
+components:
+  schemas:
+    AdminProfile:
+      properties:
+        address: &id001
+          nullable: true
+          type: string
+        adminCode:
+          example: ADM-001
+          type: string
+        email:
+          format: email
+          type: string
+        fullName: &id003
+          type: string
+        id: &id002
+          format: uuid
+          type: string
+        lastLoginAt: &id005
+          format: date-time
+          nullable: true
+          type: string
+        mustChangePassword: &id009
+          type: boolean
+        phoneNumber: *id001
+        photoUrl: *id001
+        role:
+          enum:
+          - SuperAdmin
+          - Admin
+          - Operator
+          type: string
+      type: object
+    AgroProcessorListItem:
+      properties:
+        contactEmail: *id001
+        contactName: *id001
+        contactPhone: *id001
+        fleetOrders: &id006
+          type: integer
+        id: *id002
+        initials: *id003
+        location: *id003
+        name: *id003
+        photoUrl: *id001
+        processorCode:
+          example: AGR-001
+          type: string
+        status: *id003
+      type: object
+    AgroProcessorRequest:
+      description: 'The facility address is GPS-referenced: send a map pin, or let WonderFleet geocode the address.'
+      properties:
+        address:
+          maxLength: 300
+          type: string
+        city: *id001
+        contacts:
+          items:
+            $ref: '#/components/schemas/ProcessorContact'
+          minItems: 1
+          type: array
+        latitude: &id004
+          format: double
+          nullable: true
+          type: number
+        longitude: *id004
+        name:
+          maxLength: 200
+          type: string
+        state: *id001
+      required:
+      - name
+      - address
+      - contacts
+      type: object
+    Alert:
+      properties:
+        acknowledgedAt: *id005
+        deviceSerial: *id001
+        fleetNumber: *id001
+        id: *id002
+        lastTriggeredAt: &id008
+          format: date-time
+          type: string
+        message: *id003
+        occurrenceCount: *id006
+        readingDisplay:
+          example: 28.1 C - 40%
+          type: string
+        readingValue: &id007
+          nullable: true
+          type: number
+        resolutionNote: *id001
+        resolvedAt: *id005
+        route: *id001
+        secondaryReadingValue: *id007
+        severity:
+          enum:
+          - Critical
+          - Warning
+          - Informational
+          type: string
+        status:
+          enum:
+          - Active
+          - Acknowledged
+          - Resolved
+          type: string
+        thresholdDisplay: *id001
+        thresholdValue: *id007
+        title: *id003
+        triggeredAt: *id008
+        tripCode: *id001
+        tripId: &id012
+          format: uuid
+          nullable: true
+          type: string
+        type:
+          enum:
+          - TemperatureBreach
+          - LowTemperature
+          - HighHumidity
+          - LowHumidity
+          - LowBattery
+          - Stoppage
+          - DeviceOffline
+          - Delay
+          type: string
+        vehicleCode: *id001
+      type: object
+    AlertActivity:
+      properties:
+        categories:
+          items: *id003
+          type: array
+        cells:
+          items:
+            properties:
+              category: *id003
+              count: *id006
+              day: *id003
+              level:
+                enum:
+                - None
+                - Informational
+                - Warning
+                - Critical
+                type: string
+            type: object
+          type: array
+        days:
+          items: *id003
+          type: array
+      type: object
+    AlertRule:
+      properties:
+        alertType: *id003
+        description: *id003
+        display: *id003
+        durationMinutes: &id011
+          nullable: true
+          type: integer
+        id: *id002
+        isEnabled: *id009
+        name: *id003
+        thresholdValue: *id007
+      type: object
+    AlertSummary:
+      properties:
+        critical: *id006
+        informational: *id006
+        resolved: *id006
+        resolvedWindowDays: *id006
+        warning: *id006
+      type: object
+    AnalyticsOverview:
+      properties:
+        averageHumidity:
+          properties:
+            points:
+              items:
+                $ref: '#/components/schemas/SeriesPoint'
+              type: array
+            safeMax: &id010
+              type: number
+            safeMin: *id010
+          type: object
+        averageTemperature:
+          properties:
+            points:
+              items:
+                $ref: '#/components/schemas/SeriesPoint'
+              type: array
+            thresholdC: *id010
+          type: object
+        deviceHealth:
+          items:
+            properties:
+              batteryLevel: *id011
+              deviceId: *id002
+              humidity: *id007
+              isOnline: *id009
+              lastSeenAt: *id005
+              route: *id001
+              sensorStatus: *id003
+              serial: *id003
+              temperature: *id007
+            type: object
+          type: array
+        from: *id008
+        kpis:
+          properties:
+            estimatedSpoilage:
+              $ref: '#/components/schemas/Metric'
+            humidityCompliance:
+              $ref: '#/components/schemas/Metric'
+            sensorUptime:
+              $ref: '#/components/schemas/Metric'
+            temperatureCompliance:
+              $ref: '#/components/schemas/Metric'
+          type: object
+        period: *id003
+        to: *id008
+        tripsByPartners:
+          items:
+            properties:
+              partnerCode: *id003
+              partnerId: *id002
+              partnerName: *id003
+              trips: *id006
+            type: object
+          type: array
+        weatherIntelligence:
+          additionalProperties: true
+          type: object
+      type: object
+    AssignTripResourcesRequest:
+      properties:
+        deviceId: *id012
+        driverId: *id012
+        expectedArrival: *id005
+      type: object
+    AuthResult:
+      properties:
+        accessToken: *id003
+        accessTokenExpiresAt: *id008
+        admin:
+          $ref: '#/components/schemas/AdminProfile'
+        refreshToken: *id003
+        refreshTokenExpiresAt: *id008
+      type: object
+    CancelTripRequest:
+      properties:
+        reason:
+          maxLength: 300
+          type: string
+      required:
+      - reason
+      type: object
+    ChangePartnerStatusRequest:
+      properties:
+        reason: *id001
+        status:
+          enum:
+          - Pending
+          - Active
+          - Suspended
+          type: string
+      required:
+      - status
+      type: object
+    ChangePasswordRequest:
+      properties:
+        confirmPassword: *id003
+        currentPassword: *id003
+        newPassword:
+          maxLength: 128
+          minLength: 10
+          type: string
+      required:
+      - currentPassword
+      - newPassword
+      - confirmPassword
+      type: object
+    ChannelSetting:
+      properties:
+        channel:
+          enum:
+          - Email
+          - Sms
+          - InApp
+          type: string
+        criticalOnly: *id009
+        display: *id003
+        id: *id002
+        isEnabled: *id009
+      type: object
+    CreateFleetRequest:
+      description: 'The four wizard tabs in one request: Vehicle Details, Shipment Info, Sensor & Docs, Review & Submit. Supply
+        either `vehicle` or `existingVehicleId`.'
+      properties:
+        deviceId: *id012
+        driverId: *id012
+        existingVehicleId: *id012
+        shipment:
+          $ref: '#/components/schemas/ShipmentInput'
+        startImmediately:
+          default: false
+          type: boolean
+        thresholds:
+          allOf:
+          - $ref: '#/components/schemas/Thresholds'
+          description: Omit to accept the range suggested from the selected produce.
+          nullable: true
+        vehicle:
+          allOf:
+          - $ref: '#/components/schemas/VehicleInput'
+          nullable: true
+      required:
+      - shipment
+      type: object
+    CreateShareLinkRequest:
+      description: Generates a temporary link that expires after the trip. Recipients do not sign in.
+      properties:
+        audience:
+          enum:
+          - LogisticsPartner
+          - AgroProcessor
+          type: string
+        expiresAt: *id005
+        partnerId:
+          description: Logistics partner id or agro-processor id, matching `audience`.
+          format: uuid
+          type: string
+        recipientEmail: *id001
+        recipientPhone: *id001
+        sendEmail:
+          default: true
+          type: boolean
+        sendSms:
+          default: false
+          type: boolean
+        tripIds:
+          description: Omit to include every open trip for that partner.
+          items: *id002
+          type: array
+      required:
+      - audience
+      - partnerId
+      type: object
+    Device:
+      properties:
+        batteryLevel: *id011
+        currentRoute: *id001
+        currentTripCode: *id001
+        currentTripId: *id012
+        firebaseKey: *id003
+        firmwareVersion: *id001
+        fleetNumber: *id001
+        id: *id002
+        isOnline: *id009
+        kind: *id003
+        lastChangedAt: *id005
+        lastHumidity: *id007
+        lastLatitude: *id004
+        lastLongitude: *id004
+        lastSeenAt: *id005
+        lastTemperature: *id007
+        parentDeviceId: *id012
+        parentSerial: *id001
+        sensorStatus: *id003
+        serial: *id003
+        vehicleCode: *id001
+        vehicleId: *id012
+      type: object
+    Driver:
+      properties:
+        completedTrips: *id006
+        currentAssignment: *id001
+        fullName: *id003
+        homeBase: *id001
+        id: *id002
+        initials: *id003
+        licenseNumber: *id001
+        logisticsPartnerId: *id002
+        partnerName: *id003
+        phoneNumber: *id003
+        rating: *id010
+        status:
+          enum:
+          - Available
+          - OnTrip
+          - OffDuty
+          type: string
+      type: object
+    DriverRequest:
+      properties:
+        fullName: *id003
+        homeBase: *id001
+        licenseNumber: *id001
+        logisticsPartnerId: *id002
+        phoneNumber: *id003
+        status:
+          enum:
+          - Available
+          - OffDuty
+          nullable: true
+          type: string
+      required:
+      - logisticsPartnerId
+      - fullName
+      - phoneNumber
+      type: object
+    FleetCreated:
+      properties:
+        fuelPlan:
+          allOf:
+          - $ref: '#/components/schemas/FuelEstimate'
+          nullable: true
+        thresholds:
+          $ref: '#/components/schemas/Thresholds'
+        thresholdsPushed:
+          description: Whether the limits reached the device.
+          type: boolean
+        tripCode: *id003
+        tripId: *id002
+        tripStatus: *id003
+        vehicleCode: *id003
+        vehicleId: *id002
+      type: object
+    FleetRow:
+      properties:
+        capacityTonnes: *id010
+        driverInitials: *id001
+        driverName: *id001
+        fleetNumber:
+          example: WF-1234
+          type: string
+        humidity: *id007
+        partnerId: *id002
+        partnerName: *id003
+        route:
+          example: Lagos to Kano
+          nullable: true
+          type: string
+        status:
+          enum:
+          - Normal
+          - Warning
+          - Critical
+          - Offline
+          - Idle
+          type: string
+        temperature: *id007
+        tripCode: *id001
+        tripId: *id012
+        tripStatus: *id001
+        vehicleCode:
+          example: TRK-1287
+          type: string
+        vehicleId: *id002
+        vehicleStatus: *id003
+        vehicleType: *id003
+      type: object
+    FuelComponent:
+      properties:
+        detail: &id013
+          type: string
+        key:
+          enum:
+          - base
+          - payload
+          - traffic
+          - road
+          - heat
+          - rain
+          - reefer
+          - idle
+          type: string
+        label: *id013
+        litres: &id014
+          type: number
+        percent: *id014
+      type: object
+    FuelEstimate:
+      properties:
+        assumptions:
+          items: *id013
+          type: array
+        avgAmbientC: &id015
+          nullable: true
+          type: number
+        baseLitres: *id014
+        co2Kg: *id014
+        components:
+          items:
+            $ref: '#/components/schemas/FuelComponent'
+          type: array
+        confidence:
+          enum:
+          - Low
+          - Medium
+          - High
+          type: string
+        createdAt: &id019
+          format: date-time
+          type: string
+        currency: *id013
+        distanceKm: *id014
+        driveLitres: *id014
+        durationMinutes:
+          type: integer
+        estimatedCost: *id014
+        freeFlowMinutes:
+          nullable: true
+          type: integer
+        fuelType: &id018
+          enum:
+          - Diesel
+          - Petrol
+          type: string
+        id: &id016
+          format: uuid
+          nullable: true
+          type: string
+        idleLitres: *id014
+        litresPer100Km: *id014
+        peakAmbientC: *id015
+        pricePerLitre: *id014
+        recommendedCost: *id014
+        recommendedLitres:
+          description: 'What to send the truck out with: the estimate plus a 10% margin, rounded up to 5 L.'
+          type: number
+        reeferLitres: *id014
+        refrigerated:
+          type: boolean
+        tankFills:
+          description: Dispatch volume as a multiple of the vehicle's tank.
+          nullable: true
+          type: number
+        totalLitres: *id014
+        trafficLabel: *id013
+        trafficRatio:
+          description: Driving time divided by free-flow time.
+          type: number
+        tripId: *id016
+      type: object
+    FuelEstimateRequest:
+      description: Supply a vehicle or its capacity, and either both endpoints or a distance.
+      properties:
+        baselineLitresPer100Km:
+          description: Measured consumption from the partner's fuel logs.
+          nullable: true
+          type: number
+        capacityTonnes: *id015
+        cargoMaxTemperature: *id015
+        departure: &id023
+          format: date-time
+          nullable: true
+          type: string
+        destination: &id017
+          nullable: true
+          type: string
+        distanceKm:
+          description: Use when the route service cannot be reached.
+          nullable: true
+          type: number
+        fuelType:
+          enum:
+          - Diesel
+          - Petrol
+          nullable: true
+          type: string
+        idleHours: *id015
+        origin: *id017
+        payloadTonnes: *id015
+        refrigerated:
+          nullable: true
+          type: boolean
+        roughRoadShare:
+          maximum: 1
+          minimum: 0
+          nullable: true
+          type: number
+        vehicleId: *id016
+      type: object
+    FuelPrice:
+      properties:
+        currency: *id013
+        fuelType: *id018
+        pricePerLitre: *id014
+        source: *id017
+        updatedAt: *id019
+      type: object
+    IdResponse:
+      properties:
+        code: *id001
+        id: *id002
+      type: object
+    Location:
+      properties:
+        address:
+          maxLength: 300
+          type: string
+        label:
+          description: Short map label; derived from the address when omitted.
+          nullable: true
+          type: string
+        latitude: *id004
+        longitude: *id004
+      required:
+      - address
+      type: object
+    LoginRequest:
+      properties:
+        email:
+          format: email
+          type: string
+        password:
+          maxLength: 128
+          type: string
+      required:
+      - email
+      - password
+      type: object
+    LogisticsPartnerListItem:
+      properties:
+        availabilityStatus:
+          enum:
+          - AvailableNow
+          - AvailableSoon
+          - FullyBooked
+          - Unavailable
+          type: string
+        companyName: *id003
+        contactPerson: *id003
+        email: *id003
+        fleetSize: *id006
+        id: *id002
+        initials: *id003
+        location: *id003
+        partnerCode:
+          example: PRT-001
+          type: string
+        phoneNumber: *id003
+        photoUrl: *id001
+        status:
+          enum:
+          - Pending
+          - Active
+          - Suspended
+          type: string
+      type: object
+    LogisticsPartnerRequest:
+      properties:
+        availabilityStatus:
+          enum:
+          - AvailableNow
+          - AvailableSoon
+          - FullyBooked
+          - Unavailable
+          type: string
+        cacNumber:
+          example: RC-1849213
+          type: string
+        city: &id021
+          nullable: true
+          type: string
+        companyName:
+          maxLength: 200
+          type: string
+        contactPerson: &id020
+          type: string
+        corridors:
+          description: Operating corridors, e.g. "Lagos to Kano".
+          items: *id020
+          type: array
+        driverPoolSize:
+          minimum: 0
+          type: integer
+        email:
+          format: email
+          type: string
+        fleetSize:
+          minimum: 0
+          type: integer
+        insuranceCoverageType:
+          enum:
+          - GoodsInTransit
+          - ComprehensiveFleet
+          - ThirdParty
+          - MarineCargo
+          - Other
+          nullable: true
+          type: string
+        insuranceExpiryDate:
+          format: date
+          nullable: true
+          type: string
+        officeAddress: *id021
+        phoneNumber:
+          example: '+2348031234567'
+          type: string
+        state: *id021
+        truckTypes:
+          items:
+            properties:
+              maxTonnage:
+                type: number
+              quantity:
+                type: integer
+              truckType: *id020
+            required:
+            - truckType
+            - maxTonnage
+            - quantity
+            type: object
+          type: array
+        yearsOfOperation:
+          minimum: 0
+          type: integer
+      required:
+      - companyName
+      - contactPerson
+      - cacNumber
+      - phoneNumber
+      - email
+      - availabilityStatus
+      type: object
+    MapMarker:
+      properties:
+        driverName: *id001
+        fleetNumber: *id003
+        humidity: *id007
+        lastPositionAt: *id005
+        latitude: &id022
+          format: double
+          type: number
+        longitude: *id022
+        route: *id003
+        speedKmh: *id004
+        status: *id003
+        temperature: *id007
+        tripId: *id002
+        tripStatus: *id003
+        vehicleCode: *id003
+      type: object
+    Metric:
+      properties:
+        delta: *id007
+        unit: *id003
+        value: *id007
+      type: object
+    Notification:
+      properties:
+        category:
+          enum:
+          - Hardware
+          - Critical
+          - Partner
+          - System
+          type: string
+        createdAt: *id008
+        group:
+          enum:
+          - Today
+          - Yesterday
+          - Earlier this week
+          - Older
+          type: string
+        id: *id002
+        isRead: *id009
+        message: *id003
+        partnerInitials: *id001
+        partnerName: *id001
+        partnerPhotoUrl: *id001
+        relatedEntityId: *id012
+        relatedEntityType: *id001
+        requiresReview: *id009
+        title: *id003
+      type: object
+    OptimizeRouteRequest:
+      description: Either `tripId`, or both `origin` and `destination`.
+      properties:
+        departure: *id005
+        destination: *id001
+        origin: *id001
+        produceTypeIds:
+          items: *id002
+          type: array
+        tripId: *id012
+      type: object
+    PageMeta:
+      properties:
+        hasNext: *id009
+        hasPrevious: *id009
+        page: *id006
+        pageSize: *id006
+        totalCount: *id006
+        totalPages: *id006
+      type: object
+    PagedAlerts:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/Alert'
+            type: array
+        type: object
+    PagedDevices:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/Device'
+            type: array
+        type: object
+    PagedDrivers:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/Driver'
+            type: array
+        type: object
+    PagedFleetRows:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/FleetRow'
+            type: array
+        type: object
+    PagedNotifications:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/Notification'
+            type: array
+        type: object
+    PagedPartners:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/LogisticsPartnerListItem'
+            type: array
+        type: object
+    PagedProcessors:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/AgroProcessorListItem'
+            type: array
+        type: object
+    PagedRouteRecommendations:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/RouteRecommendation'
+            type: array
+        type: object
+    PagedShareLinks:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/ShareLink'
+            type: array
+        type: object
+    PagedTrips:
+      allOf:
+      - $ref: '#/components/schemas/PageMeta'
+      - properties:
+          items:
+            items:
+              $ref: '#/components/schemas/TripSummary'
+            type: array
+        type: object
+    PortalSession:
+      properties:
+        accessToken: *id003
+        audience: *id003
+        expiresAt: *id008
+        linkExpiresAt: *id008
+        organisationName: *id003
+        tripCount: *id006
+      type: object
+    PortalSessionRequest:
+      properties:
+        token:
+          description: The `t` value from the share link.
+          type: string
+      required:
+      - token
+      type: object
+    Problem:
+      description: RFC 7807 problem document.
+      properties:
+        code:
+          description: Stable machine-readable error code, e.g. `vehicle.busy`.
+          type: string
+        detail: *id003
+        instance: *id003
+        status: *id006
+        title: *id003
+        traceId: *id003
+        type: *id003
+      type: object
+    ProcessorContact:
+      properties:
+        email:
+          format: email
+          type: string
+        fullName: *id003
+        isPrimary: *id009
+        phoneNumber: *id003
+      required:
+      - fullName
+      - phoneNumber
+      - email
+      - isPrimary
+      type: object
+    ProduceType:
+      properties:
+        defaultMaxHumidity: *id007
+        defaultMaxTemperature: *id007
+        defaultMinHumidity: *id007
+        defaultMinTemperature: *id007
+        id: *id002
+        name: *id003
+      type: object
+    ProduceTypeRequest:
+      properties:
+        defaultMaxHumidity: *id007
+        defaultMaxTemperature: *id007
+        defaultMinHumidity: *id007
+        defaultMinTemperature: *id007
+        name:
+          example: Tomatoes
+          type: string
+      required:
+      - name
+      type: object
+    RecordFuelRequest:
+      properties:
+        cost:
+          description: Omit to price the litres at the current pump price.
+          nullable: true
+          type: number
+        litres:
+          maximum: 5000
+          minimum: 0.1
+          type: number
+        note: *id017
+      required:
+      - litres
+      type: object
+    RefreshRequest:
+      properties:
+        refreshToken:
+          description: 'Optional: browsers use the HttpOnly `wf_rt` cookie instead.'
+          nullable: true
+          type: string
+      type: object
+    RegisterDeviceRequest:
+      properties:
+        firebaseKey:
+          description: Key under the Realtime Database `vehicles` node. `test`, `settings` and `vehicles` are reserved.
+          example: TRK-0001
+          type: string
+        firmwareVersion: *id001
+        kind:
+          enum:
+          - Master
+          - SubUnit
+          type: string
+        parentDeviceId: *id012
+        serial:
+          example: S-108
+          type: string
+        vehicleId: *id012
+      required:
+      - serial
+      - firebaseKey
+      - kind
+      type: object
+    ReportCatalogItem:
+      properties:
+        defaultFormat: *id003
+        description: *id003
+        formats:
+          items: *id003
+          type: array
+        period: *id003
+        title: *id003
+        type: *id003
+      type: object
+    ResolveAlertRequest:
+      properties:
+        note: *id001
+      type: object
+    RevokeShareLinkRequest:
+      properties:
+        reason: *id001
+      type: object
+    RouteCandidate:
+      properties:
+        avgForecastTempC: *id004
+        description: *id003
+        distanceKm: *id022
+        durationMinutes: *id006
+        encodedPolyline: *id003
+        heatExposure: *id022
+        index: *id006
+        maxForecastTempC: *id004
+        selected: *id009
+        warnings:
+          items: *id003
+          type: array
+      type: object
+    RouteRecommendation:
+      properties:
+        createdAt: *id008
+        destination: *id003
+        driverTips:
+          items: *id003
+          type: array
+        estimatedSpoilageReductionPct: *id010
+        heatRiskLevel:
+          enum:
+          - Low
+          - Moderate
+          - High
+          type: string
+        id: *id002
+        model:
+          description: '`wonderfleet-heuristic-v1` when the language model was unavailable.'
+          type: string
+        origin: *id003
+        recommendedDeparture: *id005
+        requestedDeparture: *id008
+        routes:
+          items:
+            $ref: '#/components/schemas/RouteCandidate'
+          type: array
+        selectedRouteIndex: *id006
+        summary: *id003
+        tripId: *id012
+      type: object
+    SeriesPoint:
+      properties:
+        bucket: *id008
+        label: *id003
+        readings: *id006
+        value: *id007
+      type: object
+    ShareLink:
+      properties:
+        accessCount: *id006
+        audience: *id003
+        createdAt: *id008
+        expiresAt: *id008
+        id: *id002
+        isActive: *id009
+        lastAccessedAt: *id005
+        organisationName: *id003
+        revokedAt: *id005
+        tripCount: *id006
+      type: object
+    ShareLinkCreated:
+      properties:
+        audience: *id003
+        emailQueued: *id009
+        expiresAt: *id008
+        id: *id002
+        smsQueued: *id009
+        tripCount: *id006
+        url:
+          format: uri
+          type: string
+      type: object
+    ShipmentInput:
+      properties:
+        additionalNotes: *id001
+        agroProcessorId: *id002
+        destination:
+          $ref: '#/components/schemas/Location'
+        estimatedWeightTonnes:
+          example: 5
+          type: number
+        expectedArrival: *id008
+        loadingTime: *id008
+        newProduce:
+          description: Names typed through "Add a produce"; created if new.
+          items: *id003
+          type: array
+        packagingType:
+          enum:
+          - Crates
+          - Sacks
+          - Cartons
+          - Baskets
+          - Pallets
+          - ReeferContainer
+          - Bulk
+          - Other
+          nullable: true
+          type: string
+        pickup:
+          $ref: '#/components/schemas/Location'
+        produceTypeIds:
+          items: *id002
+          type: array
+        unitCount: *id011
+      required:
+      - agroProcessorId
+      - estimatedWeightTonnes
+      - pickup
+      - destination
+      - loadingTime
+      - expectedArrival
+      type: object
+    SuggestedThresholds:
+      properties:
+        notes:
+          items: *id003
+          type: array
+        source:
+          enum:
+          - produce_default
+          - intersection
+          - conflict
+          - none
+          type: string
+        thresholds:
+          allOf:
+          - $ref: '#/components/schemas/Thresholds'
+          nullable: true
+      type: object
+    TelemetryWebhookPayload:
+      properties:
+        batteryLevel: *id011
+        firebaseKey: *id003
+        humidity: *id007
+        isActive:
+          default: true
+          type: boolean
+        latitude: *id004
+        longitude: *id004
+        recordedAt: *id005
+        temperature: *id007
+      required:
+      - firebaseKey
+      type: object
+    Thresholds:
+      description: Cargo safe range. Prototype values are expressed as ranges (a 5 C target becomes 4-10 C).
+      properties:
+        maxHumidity:
+          example: 75
+          type: number
+        maxTemperature:
+          example: 8
+          type: number
+        minHumidity:
+          example: 40
+          type: number
+        minTemperature:
+          example: 2
+          type: number
+      required:
+      - minTemperature
+      - maxTemperature
+      - minHumidity
+      - maxHumidity
+      type: object
+    TripDetail:
+      allOf:
+      - $ref: '#/components/schemas/TripSummary'
+      - properties:
+          activeShareLinks: *id006
+          additionalNotes: *id001
+          cancelledAt: *id005
+          co2EmissionKg: *id010
+          createdAt: *id008
+          destinationAddress: *id003
+          destinationLabel: *id003
+          destinationLatitude: *id004
+          destinationLongitude: *id004
+          deviceBattery: *id011
+          deviceId: *id012
+          deviceOnline: *id009
+          deviceSerial: *id001
+          distanceTravelledKm: *id022
+          driverId: *id012
+          driverPhone: *id001
+          lastPositionAt: *id005
+          latitude: *id004
+          longitude: *id004
+          openAlerts: *id006
+          originLabel: *id003
+          packagingType: *id001
+          partnerId: *id002
+          partnerPhone: *id003
+          pickupAddress: *id003
+          pickupLatitude: *id004
+          pickupLongitude: *id004
+          plannedDistanceKm: *id004
+          processorId: *id002
+          speedKmh: *id004
+          thresholds:
+            $ref: '#/components/schemas/Thresholds'
+          unitCount: *id011
+          vehicleId: *id002
+        type: object
+    TripFuelSummary:
+      properties:
+        actualCost: *id015
+        actualLitres: *id015
+        co2Kg: *id014
+        currency: *id013
+        estimate:
+          allOf:
+          - $ref: '#/components/schemas/FuelEstimate'
+          nullable: true
+        fuelType: *id018
+        plannedCost: *id015
+        plannedLitres: *id015
+        recordedAt: *id023
+        tripCode: *id013
+        tripId:
+          format: uuid
+          type: string
+        varianceLitres: *id015
+        variancePercent: *id015
+      type: object
+    TripSummary:
+      properties:
+        completedAt: *id005
+        driverName: *id001
+        estimatedWeightTonnes: *id010
+        expectedArrival: *id008
+        fleetNumber: *id003
+        humidity: *id007
+        id: *id002
+        loadingTime: *id008
+        partnerName: *id003
+        processorName: *id003
+        produce:
+          items: *id003
+          type: array
+        route: *id003
+        sensorStatus:
+          enum:
+          - Normal
+          - Warning
+          - Critical
+          - Offline
+          type: string
+        startedAt: *id005
+        status:
+          enum:
+          - Scheduled
+          - InTransit
+          - Stopped
+          - Delayed
+          - Completed
+          - Cancelled
+          type: string
+        temperature: *id007
+        tripCode:
+          example: SHP-004821
+          type: string
+        vehicleCode: *id003
+      type: object
+    UnreadCount:
+      properties:
+        unread: *id006
+      type: object
+    UpdateAlertRuleRequest:
+      properties:
+        durationMinutes: *id011
+        isEnabled: *id009
+        thresholdValue: *id007
+      required:
+      - isEnabled
+      type: object
+    UpdateChannelSettingRequest:
+      properties:
+        criticalOnly: *id009
+        isEnabled: *id009
+      required:
+      - isEnabled
+      - criticalOnly
+      type: object
+    UpdateDeviceRequest:
+      properties:
+        firmwareVersion: *id001
+        kind:
+          enum:
+          - Master
+          - SubUnit
+          type: string
+        parentDeviceId: *id012
+        vehicleId: *id012
+      required:
+      - kind
+      type: object
+    UpdateFuelPriceRequest:
+      properties:
+        pricePerLitre:
+          minimum: 0.01
+          type: number
+        source: *id017
+      required:
+      - pricePerLitre
+      type: object
+    UpdateProfileRequest:
+      properties:
+        address: *id001
+        email:
+          format: email
+          type: string
+        fullName:
+          maxLength: 120
+          type: string
+        phoneNumber: *id001
+      required:
+      - fullName
+      - email
+      type: object
+    ValidationProblem:
+      allOf:
+      - $ref: '#/components/schemas/Problem'
+      - properties:
+          errors:
+            additionalProperties:
+              items: *id003
+              type: array
+            type: object
+        type: object
+    VehicleInput:
+      properties:
+        baselineLitresPer100Km:
+          description: Measured consumption; overrides the modelled baseline.
+          maximum: 120
+          minimum: 3
+          nullable: true
+          type: number
+        capacityTonnes:
+          example: 7
+          type: number
+        fleetNumber:
+          example: WF-1234
+          type: string
+        fuelType:
+          default: Diesel
+          enum:
+          - Diesel
+          - Petrol
+          nullable: true
+          type: string
+        licenseNumber:
+          example: LAG-234-XY
+          type: string
+        logisticsPartnerId: *id002
+        tankCapacityLitres:
+          maximum: 2000
+          minimum: 10
+          nullable: true
+          type: number
+        vehicleType:
+          example: Refrigerated truck
+          type: string
+        yearOfManufacture: *id011
+      required:
+      - fleetNumber
+      - licenseNumber
+      - vehicleType
+      - capacityTonnes
+      - logisticsPartnerId
+      type: object

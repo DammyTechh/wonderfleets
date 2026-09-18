@@ -1,0 +1,171 @@
+paths:
+  /portal/session:
+    post:
+      tags:
+      - Partner portal
+      summary: Exchange a share link for a portal session
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/PortalSession
+        '429':
+          $ref: ./../components/responses.yaml#/components/responses/TooManyRequests
+      operationId: startPortalSession
+      description: No account and no password. The returned token lasts up to two hours and never outlives the link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/PortalSessionRequest
+      security: []
+  /portal/header:
+    get:
+      tags:
+      - Partner portal
+      summary: Portal header
+      responses:
+        '400': *id001
+        '401': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': *id002
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: portalHeader
+      description: Organisation name, audience and link expiry.
+      security: &id004
+      - bearerPortal: []
+  /portal/logistics/vehicles:
+    get:
+      tags:
+      - Partner portal
+      summary: 'Transporter: fleet management'
+      responses:
+        '400': *id001
+        '401': *id003
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: portalLogisticsVehicles
+      description: Vehicles, drivers, routes and statuses. Cargo temperature and humidity are deliberately absent from this
+        view.
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/page
+      - $ref: ./../components/responses.yaml#/components/parameters/pageSize
+      security: *id004
+  /portal/logistics/tracking:
+    get:
+      tags:
+      - Partner portal
+      summary: 'Transporter: live tracking'
+      responses:
+        '400': *id001
+        '401': *id003
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: portalLogisticsTracking
+      security: *id004
+  /portal/agro/shipments:
+    get:
+      tags:
+      - Partner portal
+      summary: 'Produce owner: my shipments'
+      responses:
+        '400': *id001
+        '401': *id003
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+      operationId: portalAgroShipments
+      security: *id004
+  /portal/agro/tracking:
+    get:
+      tags:
+      - Partner portal
+      summary: 'Produce owner: live tracking with conditions'
+      responses:
+        '400': *id001
+        '401': *id003
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: portalAgroTracking
+      security: *id004
+  /portal/agro/shipments/{tripId}/readings:
+    get:
+      tags:
+      - Partner portal
+      summary: 'Produce owner: condition history'
+      responses:
+        '400': *id001
+        '401': *id003
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: portalAgroReadings
+      parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: hours
+        in: query
+        schema:
+          type: integer
+          default: 12
+          minimum: 1
+          maximum: 72
+      security: *id004

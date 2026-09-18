@@ -1,0 +1,42 @@
+paths:
+  /telemetry:
+    post:
+      tags:
+      - Telemetry
+      summary: Device push webhook
+      responses:
+        '400':
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                  outcome:
+                    type: string
+        '404':
+          description: The webhook is disabled.
+      operationId: telemetryWebhook
+      description: 'Optional alternative to Firebase polling. Sign the raw body with HMAC-SHA256 using `Telemetry:WebhookSecret`
+        and send it as `X-WonderFleet-Signature: sha256=<hex>`. Returns 404 when no secret is configured.'
+      parameters:
+      - name: X-WonderFleet-Signature
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/TelemetryWebhookPayload
+      security: []

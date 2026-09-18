@@ -1,0 +1,13 @@
+# Keep the build context small and reproducible.
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+.git/
+.env
+.env.*
+!deploy/.env.example
+frontend/
+docs/assets/
+storage/

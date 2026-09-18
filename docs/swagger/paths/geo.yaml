@@ -1,0 +1,159 @@
+paths:
+  /geo/geocode:
+    get:
+      tags:
+      - Geo and weather
+      summary: Geocode an address
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '502':
+          $ref: ./../components/responses.yaml#/components/responses/BadGateway
+      operationId: geocode
+      parameters:
+      - name: address
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 300
+  /geo/autocomplete:
+    get:
+      tags:
+      - Geo and weather
+      summary: Address autocomplete
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    placeId:
+                      type: string
+                    description:
+                      type: string
+        '502':
+          $ref: ./../components/responses.yaml#/components/responses/BadGateway
+      operationId: autocomplete
+      parameters:
+      - name: input
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 3
+      - name: sessionToken
+        in: query
+        schema:
+          type: string
+        description: Google Places session token for billing.
+  /geo/weather:
+    get:
+      tags:
+      - Geo and weather
+      summary: Current conditions at a point
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: currentWeather
+      parameters:
+      - name: lat
+        in: query
+        required: true
+        schema:
+          type: number
+      - name: lng
+        in: query
+        required: true
+        schema:
+          type: number
+  /geo/weather/forecast:
+    get:
+      tags:
+      - Geo and weather
+      summary: Hourly forecast at a point
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: forecast
+      parameters:
+      - name: lat
+        in: query
+        required: true
+        schema:
+          type: number
+      - name: lng
+        in: query
+        required: true
+        schema:
+          type: number
+      - name: hours
+        in: query
+        schema:
+          type: integer
+          default: 24
+          minimum: 1
+          maximum: 120
+  /geo/weather/trip/{tripId}:
+    get:
+      tags:
+      - Geo and weather
+      summary: Weather intelligence along a shipment
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: tripWeather
+      description: Conditions at the origin, the current position and the destination (the Lagos to Kano panel).
+      parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid

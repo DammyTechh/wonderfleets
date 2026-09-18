@@ -1,0 +1,287 @@
+openapi: 3.0.3
+info:
+  title: WonderFleet API
+  version: "1.0.0"
+  summary: AI-enabled, heat-aware monitoring for agricultural produce in transit.
+  description: |
+    WonderFleet is the monitoring platform of **Ofemini Global Limited (OfeminiAgricTech)**.
+    It tracks temperature, humidity and position of produce in transit, raises heat-spoilage alerts,
+    notifies stakeholders by email and SMS, and produces compliance and emission reports.
+
+    ## Interfaces
+    The API serves three interfaces:
+
+    | Interface | Audience | Authentication |
+    |---|---|---|
+    | Admin console | WonderFleet administrators | `bearerAdmin` (email + password sign-in; there is **no** registration endpoint) |
+    | Logistics partner portal | Transporters | `bearerPortal` (share link, **no sign-in**) |
+    | Agro-processor portal | Produce owners | `bearerPortal` (share link, **no sign-in**) |
+
+    ## Share links
+    An administrator shares a shipment with a partner; WonderFleet generates a **temporary link**
+    that needs no account. `POST /api/v1/portal/session` exchanges the link token for a short-lived
+    portal token. A link stops working as soon as its trips end, when it expires, or when it is revoked.
+    The two audiences receive **different dashboards**: transporters see fleet and position data,
+    produce owners see the condition of their cargo.
+
+    ## Errors
+    All errors are RFC 7807 problem documents with a stable machine-readable `code`.
+
+    ## Real time
+    A SignalR hub at `/hubs/fleet` pushes `telemetry`, `alert` and `notification` events.
+    Pass the access token as `?access_token=` on the WebSocket handshake.
+  contact:
+    name: OfeminiAgricTech
+    email: ofeminiagrictech@gmail.com
+  license:
+    name: Proprietary — Ofemini Global Limited
+
+servers:
+  - url: https://wonderfleet-api.onrender.com
+    description: Production (Render)
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Authentication
+    description: Administrator sign-in. Admin accounts are seeded, never self-registered.
+  - name: Profile
+    description: The signed-in administrator's own settings.
+  - name: Dashboard
+    description: Operational overview (active trips, alerts, climate, emissions, Route AI).
+  - name: Fleet management
+    description: Vehicles and the "Add a Fleet" wizard.
+  - name: Shipments
+    description: Trip lifecycle - schedule, start, complete, cancel, reassign.
+  - name: Live tracking
+    description: Map markers, GPS and time monitor, device sensor summary.
+  - name: Logistics partners
+    description: Transporters, their fleets, corridors and compliance documents.
+  - name: Agro-processors
+    description: Produce owners and their contact persons.
+  - name: Drivers
+    description: Driver pool and assignment.
+  - name: Devices
+    description: Master and sub-unit sensor devices and their Firebase keys.
+  - name: Produce
+    description: Produce types and their default safe ranges.
+  - name: Alerts
+    description: Heat and route alerts, alert rules, notification channels.
+  - name: Notifications
+    description: In-app notification feed.
+  - name: Analytics
+    description: Uptime, compliance, spoilage, weather intelligence.
+  - name: Fuel planning
+    description: How much fuel to send with a truck, and what it actually used.
+  - name: Status reports
+    description: Downloadable PDF and CSV reports.
+  - name: WonderFleet Route AI
+    description: Heat-aware route ranking and departure advice.
+  - name: Geo and weather
+    description: Geocoding, place autocomplete and forecasts.
+  - name: Partner access
+    description: Generation and revocation of login-free tracking links.
+  - name: Partner portal
+    description: The two login-free dashboards.
+  - name: Telemetry
+    description: Optional signed webhook for device push.
+  - name: Media
+    description: Signed, expiring URLs for stored images and documents.
+
+security:
+  - bearerAdmin: []
+
+paths:
+  /api/v1/auth/login:
+    $ref: "./paths/auth.yaml#/paths/~1auth~1login"
+  /api/v1/auth/refresh:
+    $ref: "./paths/auth.yaml#/paths/~1auth~1refresh"
+  /api/v1/auth/logout:
+    $ref: "./paths/auth.yaml#/paths/~1auth~1logout"
+  /api/v1/auth/me:
+    $ref: "./paths/auth.yaml#/paths/~1auth~1me"
+  /api/v1/profile:
+    $ref: "./paths/profile.yaml#/paths/~1profile"
+  /api/v1/profile/password:
+    $ref: "./paths/profile.yaml#/paths/~1profile~1password"
+  /api/v1/profile/photo:
+    $ref: "./paths/profile.yaml#/paths/~1profile~1photo"
+  /api/v1/dashboard:
+    $ref: "./paths/dashboard.yaml#/paths/~1dashboard"
+  /api/v1/fleet:
+    $ref: "./paths/fleet.yaml#/paths/~1fleet"
+  /api/v1/fleet/next-vehicle-code:
+    $ref: "./paths/fleet.yaml#/paths/~1fleet~1next-vehicle-code"
+  /api/v1/fleet/suggested-thresholds:
+    $ref: "./paths/fleet.yaml#/paths/~1fleet~1suggested-thresholds"
+  /api/v1/fleet/vehicles/{vehicleId}:
+    $ref: "./paths/fleet.yaml#/paths/~1fleet~1vehicles~1{vehicleId}"
+  /api/v1/trips:
+    $ref: "./paths/trips.yaml#/paths/~1trips"
+  /api/v1/trips/{id}:
+    $ref: "./paths/trips.yaml#/paths/~1trips~1{id}"
+  /api/v1/trips/{id}/start:
+    $ref: "./paths/trips.yaml#/paths/~1trips~1{id}~1start"
+  /api/v1/trips/{id}/complete:
+    $ref: "./paths/trips.yaml#/paths/~1trips~1{id}~1complete"
+  /api/v1/trips/{id}/cancel:
+    $ref: "./paths/trips.yaml#/paths/~1trips~1{id}~1cancel"
+  /api/v1/trips/{id}/thresholds:
+    $ref: "./paths/trips.yaml#/paths/~1trips~1{id}~1thresholds"
+  /api/v1/trips/{id}/assignment:
+    $ref: "./paths/trips.yaml#/paths/~1trips~1{id}~1assignment"
+  /api/v1/trips/{id}/fuel:
+    $ref: "./paths/fuel.yaml#/paths/~1trips~1{id}~1fuel"
+  /api/v1/trips/{id}/fuel/estimate:
+    $ref: "./paths/fuel.yaml#/paths/~1trips~1{id}~1fuel~1estimate"
+  /api/v1/trips/{id}/fuel/actual:
+    $ref: "./paths/fuel.yaml#/paths/~1trips~1{id}~1fuel~1actual"
+  /api/v1/fuel/estimate:
+    $ref: "./paths/fuel.yaml#/paths/~1fuel~1estimate"
+  /api/v1/fuel/prices:
+    $ref: "./paths/fuel.yaml#/paths/~1fuel~1prices"
+  /api/v1/fuel/prices/{fuelType}:
+    $ref: "./paths/fuel.yaml#/paths/~1fuel~1prices~1{fuelType}"
+  /api/v1/tracking/live:
+    $ref: "./paths/tracking.yaml#/paths/~1tracking~1live"
+  /api/v1/tracking/trips/{tripId}:
+    $ref: "./paths/tracking.yaml#/paths/~1tracking~1trips~1{tripId}"
+  /api/v1/logistics-partners:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners"
+  /api/v1/logistics-partners/export:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1export"
+  /api/v1/logistics-partners/{id}:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}"
+  /api/v1/logistics-partners/{id}/status:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}~1status"
+  /api/v1/logistics-partners/{id}/photo:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}~1photo"
+  /api/v1/logistics-partners/{id}/documents:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}~1documents"
+  /api/v1/logistics-partners/{id}/documents/{documentId}:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}~1documents~1{documentId}"
+  /api/v1/logistics-partners/{id}/documents/{documentId}/verify:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}~1documents~1{documentId}~1verify"
+  /api/v1/logistics-partners/{id}/documents/{documentId}/download:
+    $ref: "./paths/logistics-partners.yaml#/paths/~1logistics-partners~1{id}~1documents~1{documentId}~1download"
+  /api/v1/agro-processors:
+    $ref: "./paths/agro-processors.yaml#/paths/~1agro-processors"
+  /api/v1/agro-processors/export:
+    $ref: "./paths/agro-processors.yaml#/paths/~1agro-processors~1export"
+  /api/v1/agro-processors/{id}:
+    $ref: "./paths/agro-processors.yaml#/paths/~1agro-processors~1{id}"
+  /api/v1/agro-processors/{id}/status:
+    $ref: "./paths/agro-processors.yaml#/paths/~1agro-processors~1{id}~1status"
+  /api/v1/agro-processors/{id}/photo:
+    $ref: "./paths/agro-processors.yaml#/paths/~1agro-processors~1{id}~1photo"
+  /api/v1/drivers:
+    $ref: "./paths/drivers.yaml#/paths/~1drivers"
+  /api/v1/drivers/{id}:
+    $ref: "./paths/drivers.yaml#/paths/~1drivers~1{id}"
+  /api/v1/devices:
+    $ref: "./paths/devices.yaml#/paths/~1devices"
+  /api/v1/devices/unknown-keys:
+    $ref: "./paths/devices.yaml#/paths/~1devices~1unknown-keys"
+  /api/v1/devices/{id}:
+    $ref: "./paths/devices.yaml#/paths/~1devices~1{id}"
+  /api/v1/devices/{id}/sync-thresholds:
+    $ref: "./paths/devices.yaml#/paths/~1devices~1{id}~1sync-thresholds"
+  /api/v1/produce-types:
+    $ref: "./paths/produce-types.yaml#/paths/~1produce-types"
+  /api/v1/produce-types/{id}:
+    $ref: "./paths/produce-types.yaml#/paths/~1produce-types~1{id}"
+  /api/v1/alerts:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts"
+  /api/v1/alerts/summary:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1summary"
+  /api/v1/alerts/activity:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1activity"
+  /api/v1/alerts/{id}:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1{id}"
+  /api/v1/alerts/{id}/acknowledge:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1{id}~1acknowledge"
+  /api/v1/alerts/{id}/resolve:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1{id}~1resolve"
+  /api/v1/alerts/rules:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1rules"
+  /api/v1/alerts/rules/{id}:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1rules~1{id}"
+  /api/v1/alerts/channels:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1channels"
+  /api/v1/alerts/channels/{id}:
+    $ref: "./paths/alerts.yaml#/paths/~1alerts~1channels~1{id}"
+  /api/v1/notifications:
+    $ref: "./paths/notifications.yaml#/paths/~1notifications"
+  /api/v1/notifications/unread-count:
+    $ref: "./paths/notifications.yaml#/paths/~1notifications~1unread-count"
+  /api/v1/notifications/read-all:
+    $ref: "./paths/notifications.yaml#/paths/~1notifications~1read-all"
+  /api/v1/notifications/{id}/read:
+    $ref: "./paths/notifications.yaml#/paths/~1notifications~1{id}~1read"
+  /api/v1/notifications/{id}/dismiss:
+    $ref: "./paths/notifications.yaml#/paths/~1notifications~1{id}~1dismiss"
+  /api/v1/analytics:
+    $ref: "./paths/analytics.yaml#/paths/~1analytics"
+  /api/v1/analytics/devices:
+    $ref: "./paths/analytics.yaml#/paths/~1analytics~1devices"
+  /api/v1/reports:
+    $ref: "./paths/reports.yaml#/paths/~1reports"
+  /api/v1/reports/{type}:
+    $ref: "./paths/reports.yaml#/paths/~1reports~1{type}"
+  /api/v1/route-ai/optimize:
+    $ref: "./paths/route-ai.yaml#/paths/~1route-ai~1optimize"
+  /api/v1/route-ai/summary:
+    $ref: "./paths/route-ai.yaml#/paths/~1route-ai~1summary"
+  /api/v1/route-ai:
+    $ref: "./paths/route-ai.yaml#/paths/~1route-ai"
+  /api/v1/route-ai/{id}:
+    $ref: "./paths/route-ai.yaml#/paths/~1route-ai~1{id}"
+  /api/v1/geo/geocode:
+    $ref: "./paths/geo.yaml#/paths/~1geo~1geocode"
+  /api/v1/geo/autocomplete:
+    $ref: "./paths/geo.yaml#/paths/~1geo~1autocomplete"
+  /api/v1/geo/weather:
+    $ref: "./paths/geo.yaml#/paths/~1geo~1weather"
+  /api/v1/geo/weather/forecast:
+    $ref: "./paths/geo.yaml#/paths/~1geo~1weather~1forecast"
+  /api/v1/geo/weather/trip/{tripId}:
+    $ref: "./paths/geo.yaml#/paths/~1geo~1weather~1trip~1{tripId}"
+  /api/v1/share-links:
+    $ref: "./paths/share-links.yaml#/paths/~1share-links"
+  /api/v1/share-links/{id}/revoke:
+    $ref: "./paths/share-links.yaml#/paths/~1share-links~1{id}~1revoke"
+  /api/v1/portal/session:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1session"
+  /api/v1/portal/header:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1header"
+  /api/v1/portal/logistics/vehicles:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1logistics~1vehicles"
+  /api/v1/portal/logistics/tracking:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1logistics~1tracking"
+  /api/v1/portal/agro/shipments:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1agro~1shipments"
+  /api/v1/portal/agro/tracking:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1agro~1tracking"
+  /api/v1/portal/agro/shipments/{tripId}/readings:
+    $ref: "./paths/portal.yaml#/paths/~1portal~1agro~1shipments~1{tripId}~1readings"
+  /api/v1/telemetry:
+    $ref: "./paths/telemetry.yaml#/paths/~1telemetry"
+  /api/v1/media:
+    $ref: "./paths/media.yaml#/paths/~1media"
+  /health/live:
+    $ref: "./paths/health.yaml#/paths/~1health~1live"
+  /health/ready:
+    $ref: "./paths/health.yaml#/paths/~1health~1ready"
+
+components:
+  securitySchemes:
+    bearerAdmin:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Administrator access token from `POST /api/v1/auth/login` (15 minutes).
+    bearerPortal:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Portal token from `POST /api/v1/portal/session` (share link, no sign-in).

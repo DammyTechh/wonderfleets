@@ -1,0 +1,24 @@
+paths:
+  /health/live:
+    get:
+      tags:
+      - Telemetry
+      summary: Liveness probe
+      operationId: healthLive
+      security: []
+      responses:
+        '200':
+          description: The process is running.
+  /health/ready:
+    get:
+      tags:
+      - Telemetry
+      summary: Readiness probe
+      description: Includes a PostgreSQL round trip; used by Render.
+      operationId: healthReady
+      security: []
+      responses:
+        '200':
+          description: Ready to serve traffic.
+        '503':
+          description: A dependency is unavailable.

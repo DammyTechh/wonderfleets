@@ -1,0 +1,100 @@
+paths:
+  /route-ai/optimize:
+    post:
+      tags:
+      - WonderFleet Route AI
+      summary: Rank routes for heat exposure
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/RouteRecommendation
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+        '502':
+          $ref: ./../components/responses.yaml#/components/responses/BadGateway
+      operationId: optimizeRoute
+      description: Fetches route alternatives from Google, samples the forecast along each one and ranks them. If the language
+        model is unavailable the deterministic heuristic answers instead, reported in `model` as `wonderfleet-heuristic-v1`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/OptimizeRouteRequest
+  /route-ai/summary:
+    get:
+      tags:
+      - WonderFleet Route AI
+      summary: Route AI dashboard banner
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  optimizationsThisWeek:
+                    type: integer
+                  avgSpoilageReductionPct:
+                    type: number
+                  criticalAlerts:
+                    type: integer
+      operationId: routeAiSummary
+  /route-ai:
+    get:
+      tags:
+      - WonderFleet Route AI
+      summary: Past recommendations
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/PagedRouteRecommendations
+      operationId: listRouteRecommendations
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/page
+      - $ref: ./../components/responses.yaml#/components/parameters/pageSize
+      - $ref: ./../components/responses.yaml#/components/parameters/search
+      - name: tripId
+        in: query
+        schema:
+          type: string
+          format: uuid
+  /route-ai/{id}:
+    get:
+      tags:
+      - WonderFleet Route AI
+      summary: Recommendation detail
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/RouteRecommendation
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getRouteRecommendation
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/id

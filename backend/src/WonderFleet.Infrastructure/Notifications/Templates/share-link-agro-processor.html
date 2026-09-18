@@ -1,0 +1,31 @@
+<!-- subject: Track your produce in transit — {{Route}} -->
+<h1 style="margin:0 0 12px;font-size:20px;line-height:28px;color:#0F5132;">Follow your produce to {{DestinationLabel}}</h1>
+<p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#1f2a24;">Hello {{Name}}, {{OrganisationName}} shared live tracking for your consignment. Open the link below to see where your produce is and the conditions inside the truck &mdash; no sign-in required.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e6ece9;border-bottom:1px solid #e6ece9;margin-bottom:18px;">
+              {{#TripCount}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Shipments</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{TripCount}}</td>
+              </tr>{{/TripCount}}
+              {{#Produce}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Produce</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Produce}}</td>
+              </tr>{{/Produce}}
+              {{#Route}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Route</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Route}}</td>
+              </tr>{{/Route}}
+              {{#ExpectedArrival}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Expected arrival</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{ExpectedArrival}}</td>
+              </tr>{{/ExpectedArrival}}
+              {{#ExpiresAt}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Link expires</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{ExpiresAt}}</td>
+              </tr>{{/ExpiresAt}}
+</table>
+{{#ShareUrl}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
+  <tr><td style="background:#0F5132;border-radius:8px;">
+    <a href="{{ShareUrl}}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">Track my produce</a>
+  </td></tr>
+</table>{{/ShareUrl}}
+<p style="margin:0;font-size:13px;line-height:20px;color:#5c6b63;">Keep this link private. It expires automatically when the delivery is completed or on {{ExpiresAt}}.</p>

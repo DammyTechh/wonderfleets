@@ -1,0 +1,256 @@
+paths:
+  /alerts:
+    get:
+      tags:
+      - Alerts
+      summary: List alerts
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/PagedAlerts
+      operationId: listAlerts
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/page
+      - $ref: ./../components/responses.yaml#/components/parameters/pageSize
+      - $ref: ./../components/responses.yaml#/components/parameters/search
+      - name: state
+        in: query
+        schema:
+          type: string
+          enum:
+          - open
+          - resolved
+          - all
+        description: Default `open`.
+      - name: severity
+        in: query
+        schema:
+          type: string
+          enum:
+          - Critical
+          - Warning
+          - Informational
+      - name: type
+        in: query
+        schema:
+          type: string
+          enum:
+          - TemperatureBreach
+          - LowTemperature
+          - HighHumidity
+          - LowHumidity
+          - LowBattery
+          - Stoppage
+          - DeviceOffline
+          - Delay
+      - name: tripId
+        in: query
+        schema:
+          type: string
+          format: uuid
+  /alerts/summary:
+    get:
+      tags:
+      - Alerts
+      summary: Alert counters
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AlertSummary
+      operationId: alertSummary
+      description: Critical, warning and informational alerts that are still open, plus alerts resolved in the last 30 days.
+  /alerts/activity:
+    get:
+      tags:
+      - Alerts
+      summary: Alert activity heat map
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AlertActivity
+      operationId: alertActivity
+      description: Counts by day and category (Temp, Hum, Route, Device) for the Alerts Activity grid.
+      parameters:
+      - name: days
+        in: query
+        schema:
+          type: integer
+          default: 7
+          minimum: 7
+          maximum: 31
+        description: 7 to 31.
+  /alerts/{id}:
+    get:
+      tags:
+      - Alerts
+      summary: Alert detail
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Alert
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getAlert
+      parameters: &id004
+      - $ref: ./../components/responses.yaml#/components/parameters/id
+  /alerts/{id}/acknowledge:
+    post:
+      tags:
+      - Alerts
+      summary: Acknowledge an alert
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Alert
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: acknowledgeAlert
+      description: '"Review" on the notification feed. The alert stays open but stops escalating.'
+      parameters: *id004
+  /alerts/{id}/resolve:
+    post:
+      tags:
+      - Alerts
+      summary: Resolve an alert
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Alert
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: resolveAlert
+      parameters: *id004
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/ResolveAlertRequest
+  /alerts/rules:
+    get:
+      tags:
+      - Alerts
+      summary: List alert rules
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./../components/schemas.yaml#/components/schemas/AlertRule
+      operationId: listAlertRules
+      description: Temperature above 8 C, humidity above 60% RH, low battery below 15%, stoppage over 30 minutes, device offline
+        and delay rules.
+  /alerts/rules/{id}:
+    put:
+      tags:
+      - Alerts
+      summary: Enable, disable or retune a rule
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/AlertRule
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: updateAlertRule
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/UpdateAlertRuleRequest
+  /alerts/channels:
+    get:
+      tags:
+      - Alerts
+      summary: Notification channel settings
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./../components/schemas.yaml#/components/schemas/ChannelSetting
+      operationId: listChannels
+      description: SMS and email toggles, including "critical only".
+  /alerts/channels/{id}:
+    put:
+      tags:
+      - Alerts
+      summary: Update a channel setting
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/ChannelSetting
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: updateChannel
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/UpdateChannelSettingRequest

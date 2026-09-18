@@ -1,0 +1,79 @@
+# Shared responses and parameters for every WonderFleet path document.
+components:
+  parameters:
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+      description: 1-based page number.
+    pageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+    search:
+      name: search
+      in: query
+      schema: { type: string, maxLength: 100 }
+      description: Case-insensitive free-text filter.
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    BadRequest:
+      description: The request failed validation.
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/ValidationProblem" }
+          example:
+            status: 400
+            title: Validation failed
+            code: validation_failed
+            errors:
+              "Shipment.EstimatedWeightTonnes": ["Estimated weight (9 t) exceeds the vehicle capacity (7 t)."]
+    Unauthorized:
+      description: Missing, expired or revoked token.
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/Problem" }
+    Forbidden:
+      description: The caller may not access this resource.
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/Problem" }
+    NotFound:
+      description: The resource does not exist.
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/Problem" }
+    Conflict:
+      description: The request conflicts with existing data (duplicate code, name or plate).
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/Problem" }
+    UnprocessableEntity:
+      description: A business rule prevents the operation (for example the vehicle already has a shipment in progress).
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/Problem" }
+          example:
+            status: 422
+            title: Request cannot be completed
+            code: vehicle.busy
+            detail: WF-1234 already has a shipment in progress.
+    TooManyRequests:
+      description: Rate limit exceeded.
+    BadGateway:
+      description: An upstream provider (Google, Firebase, OpenAI, Resend, Termii) failed.
+      content:
+        application/problem+json:
+          schema: { $ref: "./schemas.yaml#/components/schemas/Problem" }
+    NoContent:
+      description: Completed; nothing to return.
+    FileDownload:
+      description: A binary file (PDF, CSV or the stored document).
+      content:
+        application/octet-stream:
+          schema: { type: string, format: binary }

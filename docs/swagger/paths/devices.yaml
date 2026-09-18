@@ -1,0 +1,166 @@
+paths:
+  /devices:
+    get:
+      tags:
+      - Devices
+      summary: List devices
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/PagedDevices
+      operationId: listDevices
+      description: '`availableOnly=true` lists master units free for a new shipment.'
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/page
+      - $ref: ./../components/responses.yaml#/components/parameters/pageSize
+      - $ref: ./../components/responses.yaml#/components/parameters/search
+      - name: online
+        in: query
+        schema:
+          type: boolean
+      - name: availableOnly
+        in: query
+        schema:
+          type: boolean
+    post:
+      tags:
+      - Devices
+      summary: Register a device
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '201':
+          description: Registered.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/IdResponse
+        '409':
+          $ref: ./../components/responses.yaml#/components/responses/Conflict
+      operationId: registerDevice
+      description: Binds a hardware unit to its Realtime Database key. A sub-unit must be paired with a master unit; the reserved
+        nodes `test`, `settings` and `vehicles` cannot be registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/RegisterDeviceRequest
+  /devices/unknown-keys:
+    get:
+      tags:
+      - Devices
+      summary: Unregistered keys seen in Firebase
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    firebaseKey:
+                      type: string
+                    lastSeenAt:
+                      type: string
+                      format: date-time
+      operationId: unknownDeviceKeys
+      description: 'Helps onboard new hardware: keys that are publishing data but are not registered yet.'
+  /devices/{id}:
+    get:
+      tags:
+      - Devices
+      summary: Device detail
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Device
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getDevice
+      parameters: &id004
+      - $ref: ./../components/responses.yaml#/components/parameters/id
+    put:
+      tags:
+      - Devices
+      summary: Update a device
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Device
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: updateDevice
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/UpdateDeviceRequest
+    delete:
+      tags:
+      - Devices
+      summary: Delete a device
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '204':
+          $ref: ./../components/responses.yaml#/components/responses/NoContent
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: deleteDevice
+      description: Refused once the device has telemetry or trip history.
+      parameters: *id004
+  /devices/{id}/sync-thresholds:
+    post:
+      tags:
+      - Devices
+      summary: Push the cargo limits to the device
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '204':
+          $ref: ./../components/responses.yaml#/components/responses/NoContent
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+        '502':
+          $ref: ./../components/responses.yaml#/components/responses/BadGateway
+      operationId: syncDeviceThresholds
+      description: Writes `settings/{firebaseKey}` so the unit can alarm locally even without GSM coverage.
+      parameters: *id004

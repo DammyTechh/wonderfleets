@@ -1,0 +1,65 @@
+paths:
+  /reports:
+    get:
+      tags:
+      - Status reports
+      summary: Available reports
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./../components/schemas.yaml#/components/schemas/ReportCatalogItem
+      operationId: reportCatalog
+      parameters:
+      - name: month
+        in: query
+        schema:
+          type: string
+          example: 2026-08
+        description: Reporting month as yyyy-MM; defaults to the current month.
+  /reports/{type}:
+    get:
+      tags:
+      - Status reports
+      summary: Download a report
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          $ref: ./../components/responses.yaml#/components/responses/FileDownload
+        '429':
+          $ref: ./../components/responses.yaml#/components/responses/TooManyRequests
+      operationId: downloadReport
+      description: Temperature, humidity, CO2 emission, monthly compliance, sensor transmission log, route summary and fuel usage.
+      parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Report type.
+      - name: format
+        in: query
+        schema:
+          type: string
+          enum:
+          - pdf
+          - csv
+        description: Defaults to the report's natural format.
+      - name: month
+        in: query
+        schema:
+          type: string
+          example: 2026-08
+        description: Reporting month as yyyy-MM.

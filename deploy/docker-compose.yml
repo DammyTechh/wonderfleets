@@ -1,0 +1,31 @@
+# Local stack: PostgreSQL 16 plus the API.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wonderfleet
+    ports: ["5432:5432"]
+    volumes: ["wonderfleet-db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    depends_on:
+      db: { condition: service_healthy }
+    # .env lives at the repository root (cp deploy/.env.example .env)
+    env_file: [../.env]
+    environment:
+      ConnectionStrings__Default: Host=db;Port=5432;Database=wonderfleet;Username=postgres;Password=postgres
+      Storage__RootPath: /var/data/wonderfleet
+    ports: ["8080:8080"]
+    volumes: ["wonderfleet-uploads:/var/data/wonderfleet"]
+
+volumes:
+  wonderfleet-db:
+  wonderfleet-uploads:

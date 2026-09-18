@@ -1,0 +1,130 @@
+paths:
+  /drivers:
+    get:
+      tags:
+      - Drivers
+      summary: List drivers
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/PagedDrivers
+      operationId: listDrivers
+      description: Driver assignment search in the wizard uses `availableOnly=true`.
+      parameters:
+      - $ref: ./../components/responses.yaml#/components/parameters/page
+      - $ref: ./../components/responses.yaml#/components/parameters/pageSize
+      - $ref: ./../components/responses.yaml#/components/parameters/search
+      - name: partnerId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - Available
+          - OnTrip
+          - OffDuty
+      - name: availableOnly
+        in: query
+        schema:
+          type: boolean
+        description: Only drivers who are free right now.
+    post:
+      tags:
+      - Drivers
+      summary: Add a driver
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/IdResponse
+        '409':
+          $ref: ./../components/responses.yaml#/components/responses/Conflict
+      operationId: createDriver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/DriverRequest
+  /drivers/{id}:
+    get:
+      tags:
+      - Drivers
+      summary: Driver detail
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Driver
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getDriver
+      parameters: &id004
+      - $ref: ./../components/responses.yaml#/components/parameters/id
+    put:
+      tags:
+      - Drivers
+      summary: Update a driver
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: ./../components/schemas.yaml#/components/schemas/Driver
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '409':
+          $ref: ./../components/responses.yaml#/components/responses/Conflict
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: updateDriver
+      parameters: *id004
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./../components/schemas.yaml#/components/schemas/DriverRequest
+    delete:
+      tags:
+      - Drivers
+      summary: Remove a driver
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '204':
+          $ref: ./../components/responses.yaml#/components/responses/NoContent
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./../components/responses.yaml#/components/responses/UnprocessableEntity
+      operationId: deleteDriver
+      parameters: *id004

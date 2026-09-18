@@ -1,0 +1,56 @@
+paths:
+  /tracking/live:
+    get:
+      tags:
+      - Live tracking
+      summary: Live fleet tracking
+      responses:
+        '400': &id001
+          $ref: ./../components/responses.yaml#/components/responses/BadRequest
+        '401': &id002
+          $ref: ./../components/responses.yaml#/components/responses/Unauthorized
+        '403': &id003
+          $ref: ./../components/responses.yaml#/components/responses/Forbidden
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+      operationId: getLiveTracking
+      description: Map markers, GPS and time monitor, recent positions, device sensor summary and tracking status counts.
+  /tracking/trips/{tripId}:
+    get:
+      tags:
+      - Live tracking
+      summary: Track of one shipment
+      responses:
+        '400': *id001
+        '401': *id002
+        '403': *id003
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: ./../components/responses.yaml#/components/responses/NotFound
+      operationId: getTripTrack
+      parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: hours
+        in: query
+        schema:
+          type: integer
+          default: 12
+          minimum: 1
+          maximum: 72
+        description: History window (1-72).

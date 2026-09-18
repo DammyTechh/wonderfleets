@@ -1,0 +1,36 @@
+# ---- .NET -------------------------------------------------------------------
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+coverage*.xml
+*.nupkg
+
+# ---- Node / frontend --------------------------------------------------------
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+npm-debug.log*
+
+# ---- secrets and local state ------------------------------------------------
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+*service-account*.json
+
+# uploaded photos and documents in local development
+storage/
+backend/src/WonderFleet.Api/storage/
+
+# ---- editors and OS ---------------------------------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
