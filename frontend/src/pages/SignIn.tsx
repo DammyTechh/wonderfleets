@@ -31,12 +31,27 @@ export default function SignIn() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen lg:grid lg:grid-cols-[1fr_1.05fr]">
+      {/* Below lg the panel collapses to a banner above the form, so the
+          photograph is still present on phones without crowding the fields. */}
+      <div className="relative h-44 w-full overflow-hidden bg-navy sm:h-56 lg:hidden">
+        <img
+          src="/auth-hero-wide.webp"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/25 to-navy/40" />
+        <p className="absolute inset-x-5 bottom-4 font-display text-lg font-bold leading-snug text-white sm:text-xl">
+          Every truck, every degree, every kilometre — watched in real time.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-center px-6 py-10 sm:py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8">
-            <img src="/wonderfleet-logo.png" alt="WonderFleet" className="h-10 w-auto" />
-            <p className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink-faint">OfeminiAgricTech</p>
+            <img src="/wonderfleet-logo.png" alt="WonderFleet" className="h-14 w-auto sm:h-16" />
+            <p className="mt-2.5 text-[11px] font-medium uppercase tracking-wider text-ink-faint">OfeminiAgricTech</p>
           </div>
 
           <h1 className="text-2xl font-bold">Sign in</h1>
@@ -102,21 +117,48 @@ export default function SignIn() {
         </div>
       </div>
 
-      <aside className="relative hidden overflow-hidden bg-brand-900 lg:block">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(70,191,133,.35),transparent_55%)]" />
-        <div className="relative flex h-full flex-col justify-between p-12 text-brand-50">
-          <p className="max-w-md font-display text-3xl font-bold leading-snug text-white">
+      <aside className="relative hidden overflow-hidden lg:block">
+        {/* Only the backdrop is masked, so the panel dissolves into the form
+            column on the left instead of meeting it on a hard vertical seam.
+            The copy sits outside the mask and keeps full contrast. */}
+        <div
+          className="absolute inset-0"
+          style={{
+            maskImage: 'linear-gradient(to right, transparent 0, rgba(0,0,0,.65) 44px, #000 104px)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0, rgba(0,0,0,.65) 44px, #000 104px)',
+          }}
+        >
+          <div className="absolute inset-0 bg-navy" />
+          {/* Cropped, never stretched. */}
+          <picture>
+            <source srcSet="/auth-hero.webp" type="image/webp" />
+            <img
+              src="/auth-hero.jpg"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-[62%_center]"
+              fetchPriority="high"
+            />
+          </picture>
+          {/* Darkens the top and bottom just enough for white text to hold
+              contrast over the sunset, leaving the truck itself readable. */}
+          <div className="absolute inset-0 bg-gradient-to-b from-navy/80 via-navy/15 to-navy/90" />
+        </div>
+
+        <div className="relative flex h-full flex-col justify-between py-10 pl-[104px] pr-10 xl:py-12 xl:pr-12">
+          <p className="max-w-md font-display text-2xl font-bold leading-snug text-white drop-shadow-[0_1px_8px_rgba(19,26,41,.55)] xl:text-3xl">
             Every truck, every degree, every kilometre — watched in real time.
           </p>
-          <dl className="grid grid-cols-3 gap-6 border-t border-white/15 pt-8">
+          <dl className="grid grid-cols-3 gap-6 border-t border-white/20 pt-8">
             {[
               ['Temperature & humidity', 'Continuous cargo monitoring with heat-spoilage alerts'],
               ['GPS & route', 'Live position, stoppages and delay detection'],
               ['Email & SMS', 'Stakeholders told the moment conditions slip'],
             ].map(([term, description]) => (
               <div key={term}>
-                <dt className="text-sm font-semibold text-white">{term}</dt>
-                <dd className="mt-1 text-xs leading-relaxed text-brand-200">{description}</dd>
+                <dt className="text-sm font-semibold text-white drop-shadow-[0_1px_6px_rgba(19,26,41,.6)]">{term}</dt>
+                <dd className="mt-1 text-xs leading-relaxed text-white/80 drop-shadow-[0_1px_6px_rgba(19,26,41,.6)]">
+                  {description}
+                </dd>
               </div>
             ))}
           </dl>
