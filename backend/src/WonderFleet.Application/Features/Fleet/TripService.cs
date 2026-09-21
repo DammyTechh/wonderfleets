@@ -190,14 +190,17 @@ internal sealed class TripService(
 
     private async Task<Trip> LoadAsync(Guid id, bool tracking, CancellationToken ct)
     {
-        var q = db.Trips
+        // Typed as IQueryable<Trip> so AsNoTracking can be reassigned onto it.
+        // Split-query behaviour is a relational concern and is configured once on the
+        // Npgsql provider in Infrastructure, not called here — this layer stays
+        // provider-agnostic so the in-memory test provider keeps working.
+        IQueryable<Trip> q = db.Trips
             .Include(t => t.Vehicle)
             .Include(t => t.Driver)
             .Include(t => t.Device)
             .Include(t => t.LogisticsPartner)
             .Include(t => t.AgroProcessor).ThenInclude(p => p!.Contacts)
-            .Include(t => t.Produce).ThenInclude(p => p.ProduceType)
-            .AsSplitQuery();
+            .Include(t => t.Produce).ThenInclude(p => p.ProduceType);
         if (!tracking) q = q.AsNoTracking();
         return await q.FirstOrDefaultAsync(t => t.Id == id, ct) ?? throw new NotFoundException("Trip", id);
     }

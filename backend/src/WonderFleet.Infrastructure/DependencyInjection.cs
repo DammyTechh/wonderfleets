@@ -95,6 +95,9 @@ public static class DependencyInjection
             {
                 npgsql.CommandTimeout(Math.Clamp(timeout, 5, 300));
                 npgsql.EnableRetryOnFailure(3, TimeSpan.FromSeconds(3), null);
+                // Trip and partner reads include several collections; without this a
+                // single JOIN would multiply rows across them (cartesian explosion).
+                npgsql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             });
             options.AddInterceptors(provider.GetRequiredService<AuditableEntityInterceptor>());
         });
