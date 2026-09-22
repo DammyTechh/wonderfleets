@@ -1,9 +1,10 @@
-import { ArrowLeft, BadgeCheck, FileText, Truck, Users } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, FileText, Truck, Users } from '@/components/icons'
 import { Link, useParams } from 'react-router-dom'
 import { Avatar, Card, CardHeader, ErrorNote, Loading, PageHeader, StatusChip } from '@/components/ui'
 import { errorMessage } from '@/lib/api'
 import { day } from '@/lib/format'
 import { usePartner } from '@/lib/queries'
+import { label } from '@/lib/format'
 
 export default function PartnerProfile() {
   const { partnerId = '' } = useParams()
@@ -26,7 +27,7 @@ export default function PartnerProfile() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
         <Card className="p-5">
           <div className="flex items-center gap-3">
             <Avatar initials={data.initials} photoUrl={data.photoUrl} size={52} />
@@ -39,7 +40,7 @@ export default function PartnerProfile() {
           <div className="mt-4 flex flex-wrap gap-2">
             <StatusChip status={data.status} />
             <span className="chip border-line bg-surface-muted text-ink-soft">
-              {company.availabilityStatus.replace(/([a-z])([A-Z])/g, '$1 $2')}
+              {label(company.availabilityStatus)}
             </span>
             <span className="chip border-line bg-surface-muted text-ink-soft">CAC {company.cacNumber}</span>
           </div>
@@ -49,9 +50,9 @@ export default function PartnerProfile() {
               ['Completed', stats.completedTrips],
               ['Active', stats.activeShipments],
             ].map(([label, value]) => (
-              <div key={String(label)} className="rounded-xl bg-surface-sunken p-3">
-                <dt className="text-[11px] uppercase tracking-wide text-ink-faint">{String(label)}</dt>
-                <dd className="tabular mt-1 text-lg font-bold">{Number(value)}</dd>
+              <div key={String(label)} className="rounded-md bg-surface-sunken p-3">
+                <dt className="text-xs text-ink-faint">{String(label)}</dt>
+                <dd className="tabular mt-1 text-lg font-semibold">{Number(value)}</dd>
               </div>
             ))}
           </dl>
@@ -95,10 +96,10 @@ export default function PartnerProfile() {
                 ['Off duty', driverPool.offDuty],
               ].map(([label, value]) => (
                 <div key={String(label)} className="px-5 py-4 text-center">
-                  <p className="flex items-center justify-center gap-1.5 text-xs uppercase tracking-wide text-ink-faint">
+                  <p className="flex items-center justify-center gap-1.5 text-xs text-ink-faint">
                     <Users size={13} /> {String(label)}
                   </p>
-                  <p className="tabular mt-1 text-2xl font-bold">{Number(value)}</p>
+                  <p className="tabular mt-1 text-2xl font-semibold">{Number(value)}</p>
                 </div>
               ))}
             </div>
@@ -111,7 +112,7 @@ export default function PartnerProfile() {
                 <li key={document.id} className="flex items-center gap-3 px-5 py-3">
                   <FileText size={16} className="text-ink-faint" />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium">{document.documentType.replace(/([a-z])([A-Z])/g, '$1 $2')}</span>
+                    <span className="block text-sm font-medium">{label(document.documentType)}</span>
                     <span className="block truncate text-xs text-ink-faint">{document.fileName}</span>
                   </span>
                   {document.expiresOn && <span className="text-xs text-ink-soft">Expires {day(document.expiresOn)}</span>}

@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { BellOff, CheckCheck, Cpu, TriangleAlert, Users } from 'lucide-react'
+import { BellOff, CheckCheck, Cpu, TriangleAlert, Users } from '@/components/icons'
 import { useState } from 'react'
 import { Avatar, Card, EmptyState, ErrorNote, Loading, PageHeader, Pagination } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
@@ -77,7 +77,7 @@ export default function Notifications() {
           <>
             {Object.entries(groups).map(([group, items]) => (
               <section key={group}>
-                <h2 className="border-b border-line bg-surface-muted px-5 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                <h2 className="border-b border-line bg-surface-muted px-5 py-2 text-xs font-semibold text-ink-faint">
                   {group}
                 </h2>
                 <ul className="divide-y divide-line">
@@ -89,7 +89,7 @@ export default function Notifications() {
                           {item.partnerInitials ? (
                             <Avatar initials={item.partnerInitials} size={38} />
                           ) : (
-                            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-sunken text-ink-soft">
+                            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-surface-sunken text-ink-soft">
                               <Icon size={17} />
                             </span>
                           )}

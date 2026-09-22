@@ -1,4 +1,4 @@
-import { Copy, Download, Link2, Plus, Users } from 'lucide-react'
+import { Copy, Download, Link2, Plus, Users } from '@/components/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CreatePartnerDialog } from '@/components/CreatePartnerDialog'
@@ -65,7 +65,7 @@ export default function Partners() {
                       <Avatar initials={partner.initials} photoUrl={partner.photoUrl} />
                       <span>
                         <span className="block font-semibold">{partner.companyName}</span>
-                        <span className="block font-mono text-xs text-ink-faint">{partner.partnerCode}</span>
+                        <span className="block tabular text-xs text-ink-faint">{partner.partnerCode}</span>
                       </span>
                     </Link>
                   </td>
@@ -160,7 +160,7 @@ export function ShareLinkDialog({
     >
       {created ? (
         <div className="space-y-4">
-          <div className="rounded-xl border border-brand-100 bg-brand-50 p-4">
+          <div className="rounded-md border border-brand-100 bg-brand-50 p-4">
             <p className="text-sm font-medium text-brand-800">Tracking link ready</p>
             <p className="mt-1 text-xs text-brand-700">
               Covers {created.tripCount} shipment{created.tripCount === 1 ? '' : 's'} · expires {dt(created.expiresAt)}

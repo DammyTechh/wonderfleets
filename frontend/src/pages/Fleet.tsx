@@ -1,4 +1,5 @@
-import { Plus, Truck } from 'lucide-react'
+import clsx from 'clsx'
+import { Plus, Truck } from '@/components/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -78,12 +79,12 @@ export default function Fleet() {
               {data.items.map((row) => (
                 <tr key={row.vehicleId} className="transition hover:bg-surface-muted">
                   <td className="td">
-                    <p className="font-mono text-[13px] font-medium">{row.vehicleCode}</p>
+                    <p className="tabular text-[13px] font-medium">{row.vehicleCode}</p>
                     <p className="text-xs text-ink-faint">
                       {row.vehicleType} · {tonnes(row.capacityTonnes)}
                     </p>
                   </td>
-                  <td className="td font-medium">{row.fleetNumber}</td>
+                  <td className="td"><span className="code-id">{row.fleetNumber}</span></td>
                   <td className="td">
                     <Link to={`/partners/${row.partnerId}`} className="hover:text-brand-700 hover:underline">
                       {row.partnerName}
@@ -109,8 +110,10 @@ export default function Fleet() {
                     )}
                   </td>
                   <td className="td tabular whitespace-nowrap">
-                    <span className="font-medium">{temperatureText(row.temperature)}</span>
-                    <span className="text-ink-faint"> · {humidityText(row.humidity)}</span>
+                    <span className={clsx('font-medium', row.status === 'Critical' && 'text-critical-600', row.status === 'Warning' && 'text-warning-600')}>
+                      {temperatureText(row.temperature)}
+                    </span>
+                    <span className="ml-2 text-ink-soft">{humidityText(row.humidity)}</span>
                   </td>
                   <td className="td">
                     <StatusChip status={row.status} pulse />

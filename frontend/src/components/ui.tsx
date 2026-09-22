@@ -1,8 +1,9 @@
 import clsx from 'clsx'
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Loader2, Search, X } from 'lucide-react'
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, ChevronLeft, ChevronRight, Loader2, Search, X } from '@/components/icons'
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import type { SensorStatus, Severity } from '@/lib/types'
+import { label } from '@/lib/format'
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return <section className={clsx('card', className)}>{children}</section>
@@ -10,10 +11,10 @@ export function Card({ className, children }: { className?: string; children: Re
 
 export function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
-    <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
-      <div>
-        <h2 className="text-base font-semibold">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-sm text-ink-soft">{subtitle}</p>}
+    <header className="flex items-center justify-between gap-4 border-b border-line px-5 py-3.5">
+      <div className="min-w-0">
+        <h2 className="text-[15px] leading-6">{title}</h2>
+        {subtitle && <p className="text-[13px] text-ink-soft">{subtitle}</p>}
       </div>
       {action}
     </header>
@@ -22,9 +23,9 @@ export function CardHeader({ title, subtitle, action }: { title: string; subtitl
 
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+      <div className="min-w-0">
+        <h1 className="text-[22px] leading-7">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
       </div>
       {action}
@@ -32,48 +33,65 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   )
 }
 
+/**
+ * One reading: label, value, context. No icon tile — the label names it.
+ * The value takes a status colour only when it is out of range, so problems stand out.
+ * Use inside <StatStrip> to sit several readings in one panel, or alone as a card.
+ */
 export function StatCard({
-  icon, label, value, unit, delta, hint, tone = 'default',
+  label, value, unit, delta, hint, tone = 'default', inStrip = false,
 }: {
-  icon: ReactNode
+  /** Accepted for compatibility; readings are labelled by text, not icons. */
+  icon?: ReactNode
   label: string
   value: string
   unit?: string
   delta?: { value: string; good?: boolean } | null
   hint?: string
   tone?: 'default' | 'critical' | 'warning' | 'brand'
+  inStrip?: boolean
 }) {
-  const tones = {
-    default: 'bg-surface-sunken text-ink-soft',
-    brand: 'bg-brand-100 text-brand-700',
-    critical: 'bg-critical-50 text-critical-700',
-    warning: 'bg-warning-50 text-warning-700',
-  } as const
-  return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between">
-        <span className={clsx('grid h-10 w-10 place-items-center rounded-xl', tones[tone])}>{icon}</span>
-        {delta && (
-          <span
-            className={clsx(
-              'chip',
-              delta.good === false
-                ? 'border-critical-100 bg-critical-50 text-critical-700'
-                : 'border-brand-100 bg-brand-50 text-brand-700',
-            )}
-          >
-            {delta.good === false ? <ArrowDownRight size={13} /> : <ArrowUpRight size={13} />}
-            {delta.value}
-          </span>
-        )}
-      </div>
-      <p className="mt-4 text-sm font-medium text-ink-soft">{label}</p>
-      <p className="tabular mt-1 text-3xl font-bold leading-none text-ink">
+  const valueTone = { default: 'text-ink', brand: 'text-ink', critical: 'text-critical-600', warning: 'text-warning-600' }[tone]
+  const body = (
+    <div className={clsx('px-5 py-4', inStrip && 'bg-surface')}>
+      <p className="text-[13px] text-ink-soft">{label}</p>
+      <p className={clsx('tabular mt-1.5 flex items-baseline gap-1 text-[28px] font-semibold leading-9 tracking-tight', valueTone)}>
         {value}
-        {unit && <span className="ml-1 text-base font-semibold text-ink-soft">{unit}</span>}
+        {unit && <span className="text-sm font-medium tracking-normal text-ink-soft">{unit}</span>}
       </p>
-      {hint && <p className="mt-2 text-xs text-ink-faint">{hint}</p>}
-    </Card>
+      {(delta || hint) && (
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-ink-soft">
+          {delta && (
+            <span className={clsx('inline-flex items-center gap-0.5 font-medium', delta.good === false ? 'text-critical-600' : 'text-normal-600')}>
+              {/* Arrow follows the sign; colour says whether that is good. */}
+              {delta.value.trim().startsWith('-') || delta.value.trim().startsWith('−') ? <ArrowDownRight size={12} /> : <ArrowUpRight size={12} />}
+              {delta.value}
+            </span>
+          )}
+          {hint && <span>{hint}</span>}
+        </p>
+      )}
+    </div>
+  )
+  return inStrip ? body : <Card>{body}</Card>
+}
+
+/**
+ * Several readings in one panel, split by hairlines — an instrument cluster rather than
+ * a row of separate cards. The 1px gaps over a line-coloured background stay correct
+ * however the cells wrap.
+ */
+export function StatStrip({ children, columns }: { children: ReactNode; columns: 3 | 4 | 5 }) {
+  const layout = {
+    3: 'grid-cols-1 sm:grid-cols-3',
+    4: 'grid-cols-2 xl:grid-cols-4',
+    // Two per row until there is room for all five; a lone last cell spans the row.
+    5: 'grid-cols-2 xl:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1',
+  }[columns]
+  return (
+    <section className="card overflow-hidden">
+      <div className={clsx('grid gap-px bg-line', layout)}>{children}</div>
+    </section>
   )
 }
 
@@ -107,7 +125,7 @@ const dotStyles: Record<string, string> = {
 }
 
 export function StatusChip({ status, pulse }: { status: SensorStatus | Severity | string; pulse?: boolean }) {
-  const label = status.replace(/([a-z])([A-Z])/g, '$1 $2')
+  const text = label(status)
   return (
     <span className={clsx('chip', statusStyles[status] ?? 'border-line-strong bg-surface-sunken text-ink-soft')}>
       {dotStyles[status] && (
@@ -118,7 +136,7 @@ export function StatusChip({ status, pulse }: { status: SensorStatus | Severity 
           <span className={clsx('relative inline-flex h-2 w-2 rounded-full', dotStyles[status])} />
         </span>
       )}
-      {label}
+      {text}
     </span>
   )
 }
@@ -168,16 +186,17 @@ export function Table({ head, children }: { head: string[]; children: ReactNode 
 export function Pagination({ page, totalPages, totalCount, onChange }: { page: number; totalPages: number; totalCount: number; onChange: (page: number) => void }) {
   if (totalCount === 0) return null
   return (
-    <div className="flex items-center justify-between border-t border-line px-5 py-3 text-sm text-ink-soft">
+    <div className="flex items-center justify-between gap-4 border-t border-line px-5 py-2.5 text-[13px] text-ink-soft">
       <span className="tabular">
-        Page {page} of {Math.max(totalPages, 1)} · {totalCount} record{totalCount === 1 ? '' : 's'}
+        {totalCount} record{totalCount === 1 ? '' : 's'}
+        {totalPages > 1 && <span className="ml-3">Page {page} of {totalPages}</span>}
       </span>
-      <div className="flex gap-2">
-        <button className="btn-secondary px-3 py-1.5" disabled={page <= 1} onClick={() => onChange(page - 1)}>
-          <ChevronLeft size={16} /> Previous
+      <div className="flex gap-1.5">
+        <button className="btn-secondary h-8 px-2.5" disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label="Previous page">
+          <ChevronLeft size={14} /> <span className="hidden sm:inline">Previous</span>
         </button>
-        <button className="btn-secondary px-3 py-1.5" disabled={page >= totalPages} onClick={() => onChange(page + 1)}>
-          Next <ChevronRight size={16} />
+        <button className="btn-secondary h-8 px-2.5" disabled={page >= totalPages} onClick={() => onChange(page + 1)} aria-label="Next page">
+          <span className="hidden sm:inline">Next</span> <ChevronRight size={14} />
         </button>
       </div>
     </div>
@@ -186,11 +205,11 @@ export function Pagination({ page, totalPages, totalCount, onChange }: { page: n
 
 export function EmptyState({ icon, title, description, action }: { icon?: ReactNode; title: string; description?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
-      {icon && <span className="grid h-12 w-12 place-items-center rounded-2xl bg-surface-sunken text-ink-faint">{icon}</span>}
-      <div>
-        <p className="font-semibold text-ink">{title}</p>
-        {description && <p className="mt-1 text-sm text-ink-soft">{description}</p>}
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+      {icon && <span className="text-ink-faint">{icon}</span>}
+      <div className="max-w-sm">
+        <p className="font-medium text-ink">{title}</p>
+        {description && <p className="mt-1 text-[13px] text-ink-soft">{description}</p>}
       </div>
       {action}
     </div>
@@ -213,12 +232,12 @@ export function Spinner({ size = 16 }: { size?: number }) {
 
 export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="m-5 flex items-start gap-3 rounded-xl border border-critical-100 bg-critical-50 p-4 text-sm text-critical-700">
+    <div className="m-5 flex items-start gap-3 rounded-md border border-critical-100 bg-critical-50 p-4 text-sm text-critical-700">
       <AlertTriangle size={18} className="mt-0.5 shrink-0" />
       <div className="flex-1">
         <p className="font-medium">{message}</p>
         {onRetry && (
-          <button className="mt-2 font-semibold underline underline-offset-2" onClick={onRetry}>
+          <button className="mt-2 font-medium underline underline-offset-2" onClick={onRetry}>
             Try again
           </button>
         )}
@@ -248,12 +267,12 @@ export function Modal({ open, title, description, onClose, children, width = 'ma
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/30 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" role="dialog" aria-modal="true">
       <div className={clsx('card w-full animate-fade-in shadow-pop', width)}>
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold">{title}</h2>
-            {description && <p className="mt-0.5 text-sm text-ink-soft">{description}</p>}
+            <h2 className="text-[15px] leading-6">{title}</h2>
+            {description && <p className="text-[13px] text-ink-soft">{description}</p>}
           </div>
           <button className="btn-ghost p-1.5" onClick={onClose} aria-label="Close">
             <X size={18} />
@@ -285,11 +304,11 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={clsx(
-        'relative h-6 w-11 shrink-0 rounded-full transition focus:outline-none focus:ring-4 focus:ring-brand-500/15',
-        checked ? 'bg-brand-600' : 'bg-line-strong',
+        'relative h-5 w-9 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+        checked ? 'bg-brand-500' : 'bg-line-strong',
       )}
     >
-      <span className={clsx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
+      <span className={clsx('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all', checked ? 'left-[18px]' : 'left-0.5')} />
     </button>
   )
 }

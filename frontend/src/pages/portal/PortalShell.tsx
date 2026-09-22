@@ -1,4 +1,4 @@
-import { Clock, ShieldCheck } from 'lucide-react'
+import { Clock, ShieldCheck } from '@/components/icons'
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { dt } from '@/lib/format'

@@ -1,15 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  ArrowLeft, Battery, CheckCircle2, Cpu, Fuel, Gauge, Leaf, Link2, MapPin, Play, RefreshCw, Thermometer, Truck, XCircle,
-} from 'lucide-react'
+import { ArrowLeft, Battery, CheckCircle2, Cpu, Fuel, Link2, MapPin, Play, RefreshCw, XCircle } from '@/components/icons'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { FleetMap } from '@/components/FleetMap'
 import { FuelBreakdown, formatMoney } from '@/components/FuelCard'
-import { Card, CardHeader, ErrorNote, Field, Loading, Modal, PageHeader, Spinner, StatusChip } from '@/components/ui'
+import { StatCard, StatStrip, Card, CardHeader, ErrorNote, Field, Loading, Modal, PageHeader, Spinner, StatusChip } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { dt, humidity as humidityText, km, since, temperature as temperatureText, tonnes } from '@/lib/format'
 import { keys, useApiMutation, useTrip, useTripFuel } from '@/lib/queries'
+
+const outside = (value: number | null | undefined, min: number, max: number) => value != null && (value < min || value > max)
 
 export default function TripDetailPage() {
   const { tripId = '' } = useParams()
@@ -56,8 +56,8 @@ export default function TripDetailPage() {
   return (
     <>
       <PageHeader
-        title={`${trip.tripCode} · ${trip.route}`}
-        subtitle={`${trip.fleetNumber} · ${trip.partnerName} → ${trip.processorName}`}
+        title={trip.route}
+        subtitle={`Shipment ${trip.tripCode} on ${trip.fleetNumber}, carried by ${trip.partnerName} for ${trip.processorName}`}
         action={
           <div className="flex flex-wrap gap-2">
             <Link to="/fleet" className="btn-secondary">
@@ -84,56 +84,39 @@ export default function TripDetailPage() {
 
       {actionError && <ErrorNote message={actionError} />}
 
-      <div className="grid gap-4 lg:grid-cols-4">
-        <Card className="p-4">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
-            <Thermometer size={14} /> Temperature
-          </p>
-          <p className="tabular mt-2 text-2xl font-bold">{temperatureText(trip.temperature)}</p>
-          <p className="mt-1 text-xs text-ink-soft">
-            Limits {trip.thresholds.minTemperature}–{trip.thresholds.maxTemperature} °C
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
-            <Gauge size={14} /> Humidity
-          </p>
-          <p className="tabular mt-2 text-2xl font-bold">{humidityText(trip.humidity)}</p>
-          <p className="mt-1 text-xs text-ink-soft">
-            Limits {trip.thresholds.minHumidity}–{trip.thresholds.maxHumidity} % RH
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
-            <Truck size={14} /> Distance
-          </p>
-          <p className="tabular mt-2 text-2xl font-bold">{km(trip.distanceTravelledKm)}</p>
-          <p className="mt-1 text-xs text-ink-soft">
-            {trip.plannedDistanceKm ? `Planned ${km(trip.plannedDistanceKm)}` : 'No planned distance'}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
-            <Leaf size={14} /> CO₂
-          </p>
-          <p className="tabular mt-2 text-2xl font-bold">{trip.co2EmissionKg.toFixed(1)} kg</p>
-          <p className="mt-1 text-xs text-ink-soft">
-            {fuel.data?.plannedLitres != null
-              ? `Fuel ${(fuel.data.actualLitres ?? fuel.data.plannedLitres).toFixed(0)} L${fuel.data.actualLitres != null ? ' used' : ' planned'}`
-              : `${trip.openAlerts} open alert${trip.openAlerts === 1 ? '' : 's'}`}
-          </p>
-        </Card>
-      </div>
+      {/* A reading is coloured only when it is outside this trip's own limits. */}
+      <StatStrip columns={4}>
+        <StatCard
+          inStrip label="Temperature" value={temperatureText(trip.temperature)}
+          tone={outside(trip.temperature, trip.thresholds.minTemperature, trip.thresholds.maxTemperature) ? 'critical' : 'default'}
+          hint={`Limits ${trip.thresholds.minTemperature}–${trip.thresholds.maxTemperature} °C`}
+        />
+        <StatCard
+          inStrip label="Humidity" value={humidityText(trip.humidity)}
+          tone={outside(trip.humidity, trip.thresholds.minHumidity, trip.thresholds.maxHumidity) ? 'warning' : 'default'}
+          hint={`Limits ${trip.thresholds.minHumidity}–${trip.thresholds.maxHumidity}% RH`}
+        />
+        <StatCard
+          inStrip label="Distance" value={km(trip.distanceTravelledKm)}
+          hint={trip.plannedDistanceKm ? `of ${km(trip.plannedDistanceKm)} planned` : 'No planned distance'}
+        />
+        <StatCard
+          inStrip label="CO₂" value={trip.co2EmissionKg.toFixed(1)} unit="kg"
+          hint={fuel.data?.plannedLitres != null
+            ? `Fuel ${(fuel.data.actualLitres ?? fuel.data.plannedLitres).toFixed(0)} L ${fuel.data.actualLitres != null ? 'used' : 'planned'}`
+            : `${trip.openAlerts} open alert${trip.openAlerts === 1 ? '' : 's'}`}
+        />
+      </StatStrip>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <Card className="overflow-hidden">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
+        <Card className="self-start overflow-hidden">
           <CardHeader
             title="Position"
             subtitle={trip.lastPositionAt ? `Last fix ${since(trip.lastPositionAt)}` : 'Awaiting the first fix'}
             action={<StatusChip status={trip.sensorStatus} pulse />}
           />
           <FleetMap
-            height={320}
+            height={420}
             markers={
               trip.latitude != null && trip.longitude != null
                 ? [
@@ -219,26 +202,26 @@ export default function TripDetailPage() {
           ) : (
             <>
               {fuel.data?.actualLitres != null && (
-                <div className="mb-4 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl border border-line p-4">
-                    <p className="text-xs uppercase tracking-wide text-ink-faint">Planned</p>
-                    <p className="tabular mt-1 text-xl font-bold">{fuel.data.plannedLitres?.toFixed(0) ?? '—'} L</p>
+                <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-md border border-line p-4">
+                    <p className="text-xs text-ink-faint">Planned</p>
+                    <p className="tabular mt-1 text-xl font-semibold">{fuel.data.plannedLitres?.toFixed(0) ?? '—'} L</p>
                     <p className="text-xs text-ink-soft">
                       {fuel.data.plannedCost ? formatMoney(fuel.data.plannedCost, fuel.data.currency) : '—'}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-line p-4">
-                    <p className="text-xs uppercase tracking-wide text-ink-faint">Actually used</p>
-                    <p className="tabular mt-1 text-xl font-bold">{fuel.data.actualLitres.toFixed(0)} L</p>
+                  <div className="rounded-md border border-line p-4">
+                    <p className="text-xs text-ink-faint">Actually used</p>
+                    <p className="tabular mt-1 text-xl font-semibold">{fuel.data.actualLitres.toFixed(0)} L</p>
                     <p className="text-xs text-ink-soft">
                       {fuel.data.actualCost ? formatMoney(fuel.data.actualCost, fuel.data.currency) : '—'}
                     </p>
                   </div>
                   <div className={fuel.data.varianceLitres && fuel.data.varianceLitres > 0
-                    ? 'rounded-xl border border-warning-100 bg-warning-50 p-4'
-                    : 'rounded-xl border border-brand-100 bg-brand-50 p-4'}>
-                    <p className="text-xs uppercase tracking-wide text-ink-faint">Variance</p>
-                    <p className="tabular mt-1 text-xl font-bold">
+                    ? 'rounded-md border border-warning-100 bg-warning-50 p-4'
+                    : 'rounded-md border border-brand-100 bg-brand-50 p-4'}>
+                    <p className="text-xs text-ink-faint">Variance</p>
+                    <p className="tabular mt-1 text-xl font-semibold">
                       {fuel.data.varianceLitres == null ? '—' : `${fuel.data.varianceLitres > 0 ? '+' : ''}${fuel.data.varianceLitres.toFixed(0)} L`}
                     </p>
                     <p className="text-xs text-ink-soft">

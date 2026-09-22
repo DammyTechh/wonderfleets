@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CircleAlert, Cpu, PlugZap, Radio } from 'lucide-react'
+import { CircleAlert, Cpu, PlugZap, Radio } from '@/components/icons'
 import { type ReactNode, useState } from 'react'
 import { errorMessage } from '@/lib/api'
 import { since } from '@/lib/format'
@@ -70,7 +70,7 @@ export function FirebaseDevicesPanel({ compact = false }: { compact?: boolean })
           WonderFleet never adds a Firebase node on its own, so a test node cannot become a device by accident. Register the
           ones that are real hardware.
         </p>
-        <ul className="mt-3 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+        <ul className="mt-3 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
           {pending.map((unit) => (
             <li key={unit.firebaseKey} className="flex items-center gap-3 px-3 py-2.5">
               <Cpu size={16} className="shrink-0 text-ink-soft" />
@@ -117,7 +117,7 @@ function Notice({ tone, icon, title, children }: {
     <div
       role="status"
       className={clsx(
-        'rounded-2xl border p-4 text-sm text-ink-soft',
+        'rounded-lg border p-4 text-sm text-ink-soft',
         tone === 'warning' && 'border-warning-100 bg-warning-50',
         tone === 'critical' && 'border-critical-100 bg-critical-50',
         tone === 'info' && 'border-info-100 bg-info-50',

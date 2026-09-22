@@ -1,6 +1,6 @@
-import { Activity, Clock, MapPinned, Radio, Satellite } from 'lucide-react'
+import { Satellite } from '@/components/icons'
 import { FleetMap } from '@/components/FleetMap'
-import { Card, CardHeader, ErrorNote, Loading, PageHeader, StatusChip } from '@/components/ui'
+import { Card, CardHeader, ErrorNote, Loading, PageHeader, StatCard, StatStrip, StatusChip } from '@/components/ui'
 import { errorMessage } from '@/lib/api'
 import { since, temperature as temperatureText, watLabel } from '@/lib/format'
 import { useLiveTracking } from '@/lib/queries'
@@ -17,33 +17,21 @@ export default function Tracking() {
     <>
       <PageHeader title="Live tracking" subtitle="Positions, signals and device health across the fleet." />
 
-      <div className="grid gap-4 sm:grid-cols-4">
-        {([
-          ['Live', statusCounts.live, Radio],
-          ['In transit', statusCounts.inTransit, MapPinned],
-          ['Stopped', statusCounts.stopped, Activity],
-          ['Delayed', statusCounts.delay, Clock],
-        ] as const).map(([label, value, Icon]) => (
-          <Card key={label} className="flex items-center gap-3 p-4">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-sunken text-ink-soft">
-              <Icon size={18} />
-            </span>
-            <span>
-              <span className="block text-xs font-medium uppercase tracking-wide text-ink-faint">{label}</span>
-              <span className="tabular block text-xl font-bold">{value}</span>
-            </span>
-          </Card>
-        ))}
-      </div>
+      <StatStrip columns={4}>
+        <StatCard inStrip label="Live" value={String(statusCounts.live)} hint="reporting now" />
+        <StatCard inStrip label="In transit" value={String(statusCounts.inTransit)} hint="moving" />
+        <StatCard inStrip label="Stopped" value={String(statusCounts.stopped)} tone={statusCounts.stopped > 0 ? 'warning' : 'default'} hint="stationary" />
+        <StatCard inStrip label="Delayed" value={String(statusCounts.delay)} tone={statusCounts.delay > 0 ? 'warning' : 'default'} hint="behind schedule" />
+      </StatStrip>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.6fr_1fr]">
-        <Card className="overflow-hidden">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.6fr_1fr]">
+        <Card className="self-start overflow-hidden">
           <CardHeader
             title="Fleet positions"
             subtitle={`${markers.length} vehicle${markers.length === 1 ? '' : 's'} reporting`}
-            action={<span className="tabular chip border-line bg-surface-muted text-ink-soft">{watLabel()}</span>}
+            action={<span className="tabular text-[13px] text-ink-soft">{watLabel()}</span>}
           />
-          <FleetMap markers={markers} height={420} />
+          <FleetMap markers={markers} height={520} />
         </Card>
 
         <div className="space-y-4">
@@ -60,8 +48,8 @@ export default function Tracking() {
                 ['Offline', deviceSummary.offline],
               ] as const).map(([label, value]) => (
                 <div key={label} className="px-3 py-4 text-center">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-ink-faint">{label}</p>
-                  <p className="tabular mt-1 text-xl font-bold">{value}</p>
+                  <p className="text-xs font-medium text-ink-faint">{label}</p>
+                  <p className="tabular mt-1 text-xl font-semibold">{value}</p>
                 </div>
               ))}
             </div>
@@ -78,7 +66,7 @@ export default function Tracking() {
             <ul className="divide-y divide-line text-sm">
               {gpsMonitor.recentPositions.slice(0, 6).map((position) => (
                 <li key={`${position.vehicleCode}-${position.recordedAt}`} className="flex items-center justify-between gap-3 px-5 py-2.5">
-                  <span className="font-mono text-[13px] font-medium">{position.vehicleCode}</span>
+                  <span className="tabular text-[13px] font-medium">{position.vehicleCode}</span>
                   <span className="min-w-0 flex-1 truncate text-xs text-ink-faint">{position.route}</span>
                   <span className="tabular whitespace-nowrap text-sm font-medium">
                     {position.speedKmh == null ? '—' : `${position.speedKmh.toFixed(0)} km/h`}

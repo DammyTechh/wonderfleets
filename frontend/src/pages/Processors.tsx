@@ -1,4 +1,4 @@
-import { Download, Link2, Plus, Sprout } from 'lucide-react'
+import { Download, Link2, Plus, Sprout } from '@/components/icons'
 import { useState } from 'react'
 import {
   Avatar, Card, EmptyState, ErrorNote, Loading, PageHeader, Pagination, SearchInput, StatusChip, Table,
@@ -55,7 +55,7 @@ export default function Processors() {
                       <Avatar initials={processor.initials} photoUrl={processor.photoUrl} />
                       <span>
                         <span className="block font-semibold">{processor.name}</span>
-                        <span className="block font-mono text-xs text-ink-faint">{processor.processorCode}</span>
+                        <span className="block tabular text-xs text-ink-faint">{processor.processorCode}</span>
                       </span>
                     </span>
                   </td>

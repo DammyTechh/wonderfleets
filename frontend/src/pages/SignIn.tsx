@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, ShieldCheck } from '@/components/icons'
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Spinner } from '@/components/ui'
@@ -42,8 +42,8 @@ export default function SignIn() {
           fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/25 to-navy/40" />
-        <p className="absolute inset-x-5 bottom-4 font-display text-lg font-bold leading-snug text-white sm:text-xl">
-          Every truck, every degree, every kilometre — watched in real time.
+        <p className="absolute inset-x-5 bottom-4 font-display text-lg font-semibold leading-snug text-white sm:text-xl">
+          Every truck, every degree, every kilometre. Watched in real time.
         </p>
       </div>
 
@@ -51,10 +51,10 @@ export default function SignIn() {
         <div className="w-full max-w-sm">
           <div className="mb-8">
             <img src="/wonderfleet-logo.png" alt="WonderFleet" className="h-14 w-auto sm:h-16" />
-            <p className="mt-2.5 text-[11px] font-medium uppercase tracking-wider text-ink-faint">OfeminiAgricTech</p>
+            <p className="mt-2.5 text-xs font-medium text-ink-faint">OfeminiAgricTech</p>
           </div>
 
-          <h1 className="text-2xl font-bold">Sign in</h1>
+          <h1 className="text-2xl font-semibold">Sign in</h1>
           <p className="mt-1 text-sm text-ink-soft">Administrator access to fleet monitoring and alerts.</p>
 
           <form className="mt-7 space-y-4" onSubmit={submit}>
@@ -99,7 +99,7 @@ export default function SignIn() {
             </label>
 
             {error && (
-              <p role="alert" className="rounded-xl border border-critical-100 bg-critical-50 px-3.5 py-2.5 text-sm text-critical-700">
+              <p role="alert" className="rounded-md border border-critical-100 bg-critical-50 px-3.5 py-2.5 text-sm text-critical-700">
                 {error}
               </p>
             )}
@@ -145,8 +145,8 @@ export default function SignIn() {
         </div>
 
         <div className="relative flex h-full flex-col justify-between py-10 pl-[104px] pr-10 xl:py-12 xl:pr-12">
-          <p className="max-w-md font-display text-2xl font-bold leading-snug text-white drop-shadow-[0_1px_8px_rgba(19,26,41,.55)] xl:text-3xl">
-            Every truck, every degree, every kilometre — watched in real time.
+          <p className="max-w-md font-display text-2xl font-semibold leading-snug text-white drop-shadow-[0_1px_8px_rgba(19,26,41,.55)] xl:text-3xl">
+            Every truck, every degree, every kilometre. Watched in real time.
           </p>
           <dl className="grid grid-cols-3 gap-6 border-t border-white/20 pt-8">
             {[

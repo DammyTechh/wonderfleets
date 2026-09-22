@@ -1,13 +1,14 @@
-import { Activity, CloudSun, Download, Droplets, FileText, Thermometer, TriangleAlert } from 'lucide-react'
+import { CloudSun, Download, FileText } from '@/components/icons'
 import { useState } from 'react'
 import {
   Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
-import { Card, CardHeader, ErrorNote, Loading, PageHeader, StatCard, StatusChip } from '@/components/ui'
+import { Card, CardHeader, ErrorNote, Loading, PageHeader, StatCard, StatStrip, StatusChip } from '@/components/ui'
 import { download, errorMessage } from '@/lib/api'
 import { percent, signed, since } from '@/lib/format'
 import { useAnalytics, useReportCatalog } from '@/lib/queries'
+import { chart } from '@/lib/chart'
 
 const PERIODS = ['week', 'month', 'quarter', 'year'] as const
 
@@ -39,7 +40,7 @@ export default function Analytics() {
                 </option>
               ))}
             </select>
-            <div className="flex rounded-xl border border-line bg-surface p-1">
+            <div className="flex rounded-md border border-line bg-surface p-1">
               {PERIODS.map((option) => (
                 <button
                   key={option}
@@ -58,44 +59,44 @@ export default function Analytics() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          icon={<Activity size={18} />} tone="brand" label="Sensor uptime"
+      <StatStrip columns={4}>
+        <StatCard inStrip
+          label="Sensor uptime"
           value={percent(kpis.sensorUptime.value)}
           delta={kpis.sensorUptime.delta != null ? { value: `${signed(kpis.sensorUptime.delta)}%`, good: kpis.sensorUptime.delta >= 0 } : null}
         />
-        <StatCard
-          icon={<Thermometer size={18} />} label="Temperature compliance"
+        <StatCard inStrip
+          label="Temperature compliance"
           value={percent(kpis.temperatureCompliance.value)}
           delta={kpis.temperatureCompliance.delta != null ? { value: `${signed(kpis.temperatureCompliance.delta)}%`, good: kpis.temperatureCompliance.delta >= 0 } : null}
         />
-        <StatCard
-          icon={<Droplets size={18} />} label="Humidity compliance"
+        <StatCard inStrip
+          label="Humidity compliance"
           value={percent(kpis.humidityCompliance.value)}
           delta={kpis.humidityCompliance.delta != null ? { value: `${signed(kpis.humidityCompliance.delta)}%`, good: kpis.humidityCompliance.delta >= 0 } : null}
         />
-        <StatCard
-          icon={<TriangleAlert size={18} />} tone="warning" label="Estimated spoilage"
+        <StatCard inStrip
+          label="Estimated spoilage"
           value={percent(kpis.estimatedSpoilage.value)}
           delta={kpis.estimatedSpoilage.delta != null ? { value: `${signed(kpis.estimatedSpoilage.delta)}%`, good: kpis.estimatedSpoilage.delta <= 0 } : null}
         />
-      </div>
+      </StatStrip>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader title="Average temperature" subtitle={`Threshold ${data.averageTemperature.thresholdC} °C`} />
           <div className="h-64 p-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={temperatureData} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
-                <CartesianGrid stroke="#e6ece9" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#8b9891' }} tickLine={false} axisLine={false} minTickGap={16} />
-                <YAxis tick={{ fontSize: 11, fill: '#8b9891' }} tickLine={false} axisLine={false} unit="°" />
+                <CartesianGrid stroke={chart.grid} vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: chart.axis }} tickLine={false} axisLine={false} minTickGap={16} />
+                <YAxis tick={{ fontSize: 11, fill: chart.axis }} tickLine={false} axisLine={false} unit="°" />
                 <Tooltip
-                  contentStyle={{ borderRadius: 12, border: '1px solid #e6ece9', fontSize: 12 }}
+                  contentStyle={{ borderRadius: 6, border: `1px solid ${chart.grid}`, fontSize: 12, boxShadow: 'none' }}
                   formatter={(value: number) => [`${value?.toFixed?.(1) ?? value} °C`, 'Average']}
                 />
-                <ReferenceLine y={data.averageTemperature.thresholdC} stroke="#f04438" strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="value" stroke="#158554" strokeWidth={2.5} dot={false} connectNulls />
+                <ReferenceLine y={data.averageTemperature.thresholdC} stroke={chart.limit} strokeDasharray="4 4" />
+                <Line type="monotone" dataKey="value" stroke={chart.primary} strokeWidth={2} dot={false} connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -106,19 +107,19 @@ export default function Analytics() {
           <div className="h-64 p-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={humidityData} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
-                <CartesianGrid stroke="#e6ece9" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#8b9891' }} tickLine={false} axisLine={false} minTickGap={16} />
-                <YAxis tick={{ fontSize: 11, fill: '#8b9891' }} tickLine={false} axisLine={false} unit="%" domain={[0, 100]} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e6ece9', fontSize: 12 }} />
-                <ReferenceArea y1={data.averageHumidity.safeMin} y2={data.averageHumidity.safeMax} fill="#d6f5e2" fillOpacity={0.55} />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                <CartesianGrid stroke={chart.grid} vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: chart.axis }} tickLine={false} axisLine={false} minTickGap={16} />
+                <YAxis tick={{ fontSize: 11, fill: chart.axis }} tickLine={false} axisLine={false} unit="%" domain={[0, 100]} />
+                <Tooltip contentStyle={{ borderRadius: 6, border: `1px solid ${chart.grid}`, fontSize: 12, boxShadow: 'none' }} />
+                <ReferenceArea y1={data.averageHumidity.safeMin} y2={data.averageHumidity.safeMax} fill={chart.band} fillOpacity={0.55} />
+                <Bar dataKey="value" radius={[3, 3, 0, 0]}>
                   {humidityData.map((point, index) => (
                     <Cell
                       key={index}
                       fill={
-                        point.value == null ? '#d3ded8'
+                        point.value == null ? chart.empty
                           : point.value > data.averageHumidity.safeMax || point.value < data.averageHumidity.safeMin
-                            ? '#f79009' : '#46bf85'
+                            ? chart.limit : chart.inRange
                       }
                     />
                   ))}
@@ -129,7 +130,7 @@ export default function Analytics() {
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card>
           <CardHeader title="Trips by partner" />
           <ul className="divide-y divide-line">
@@ -155,7 +156,7 @@ export default function Analytics() {
             {data.deviceHealth.slice(0, 6).map((device) => (
               <li key={device.deviceId} className="flex items-center gap-3 px-5 py-3">
                 <span className="min-w-0 flex-1">
-                  <span className="block font-mono text-sm font-medium">{device.serial}</span>
+                  <span className="block tabular text-sm font-medium">{device.serial}</span>
                   <span className="block truncate text-xs text-ink-faint">{device.route ?? 'Idle'} · {since(device.lastSeenAt)}</span>
                 </span>
                 {device.batteryLevel != null && <span className="tabular text-xs text-ink-soft">{device.batteryLevel}%</span>}

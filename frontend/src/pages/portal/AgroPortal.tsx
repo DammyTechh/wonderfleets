@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Droplets, PackageCheck, Thermometer } from 'lucide-react'
+import { Droplets, PackageCheck, Thermometer } from '@/components/icons'
 import { CartesianGrid, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useState } from 'react'
 import { FleetMap } from '@/components/FleetMap'
@@ -8,6 +8,7 @@ import { errorMessage, portalApi } from '@/lib/api'
 import { dt, humidity as humidityText, temperature as temperatureText } from '@/lib/format'
 import type { AgroShipment, AgroTracking, TrackPoint } from '@/lib/types'
 import { PortalShell, usePortalSession } from './PortalShell'
+import { chart } from '@/lib/chart'
 
 /** Produce-owner view: where my goods are, and the conditions they are travelling in. */
 export default function AgroPortal() {
@@ -53,7 +54,7 @@ export default function AgroPortal() {
         <ErrorNote message={errorMessage(shipments.error)} onRetry={() => shipments.refetch()} />
       ) : shipments.data && shipments.data.length > 0 ? (
         <div className="grid gap-4">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {shipments.data.map((shipment) => (
               <button
                 key={shipment.tripId}
@@ -66,7 +67,7 @@ export default function AgroPortal() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-mono text-xs text-ink-faint">{shipment.tripCode}</p>
+                    <p className="tabular text-xs text-ink-faint">{shipment.tripCode}</p>
                     <p className="truncate text-sm font-semibold">{shipment.produce.join(', ') || 'Produce'}</p>
                     <p className="truncate text-xs text-ink-soft">{shipment.route}</p>
                   </div>
@@ -99,7 +100,7 @@ export default function AgroPortal() {
             ))}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
             <Card className="overflow-hidden">
               <CardHeader
                 title="Where your produce is"
@@ -128,20 +129,20 @@ export default function AgroPortal() {
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
-                      <CartesianGrid stroke="#e6ece9" vertical={false} />
-                      <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#8b9891' }} tickLine={false} axisLine={false} minTickGap={24} />
-                      <YAxis tick={{ fontSize: 11, fill: '#8b9891' }} tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e6ece9', fontSize: 12 }} />
+                      <CartesianGrid stroke={chart.grid} vertical={false} />
+                      <XAxis dataKey="time" tick={{ fontSize: 11, fill: chart.axis }} tickLine={false} axisLine={false} minTickGap={24} />
+                      <YAxis tick={{ fontSize: 11, fill: chart.axis }} tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ borderRadius: 6, border: `1px solid ${chart.grid}`, fontSize: 12, boxShadow: 'none' }} />
                       {active && (
                         <ReferenceArea
                           y1={active.minTemperature}
                           y2={active.maxTemperature}
-                          fill="#d6f5e2"
+                          fill={chart.band}
                           fillOpacity={0.6}
                         />
                       )}
-                      <Line type="monotone" dataKey="temperature" name="Temperature (°C)" stroke="#158554" strokeWidth={2.5} dot={false} connectNulls />
-                      <Line type="monotone" dataKey="humidity" name="Humidity (%)" stroke="#2e90fa" strokeWidth={2} dot={false} strokeDasharray="4 3" connectNulls />
+                      <Line type="monotone" dataKey="temperature" name="Temperature (°C)" stroke={chart.primary} strokeWidth={2} dot={false} connectNulls />
+                      <Line type="monotone" dataKey="humidity" name="Humidity (%)" stroke={chart.secondary} strokeWidth={2} dot={false} strokeDasharray="4 3" connectNulls />
                     </LineChart>
                   </ResponsiveContainer>
                 )}

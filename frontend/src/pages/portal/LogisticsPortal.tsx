@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Truck } from 'lucide-react'
+import { Truck } from '@/components/icons'
 import { FleetMap } from '@/components/FleetMap'
 import { Card, CardHeader, EmptyState, ErrorNote, Loading, StatusChip, Table } from '@/components/ui'
 import { errorMessage, portalApi } from '@/lib/api'
@@ -66,7 +66,7 @@ export default function LogisticsPortal() {
             <Table head={['Vehicle', 'Fleet no.', 'Driver', 'Route', 'Status']}>
               {vehicles.data.items.map((vehicle) => (
                 <tr key={vehicle.tripId}>
-                  <td className="td font-mono text-[13px]">{vehicle.vehicleCode}</td>
+                  <td className="td tabular text-[13px]">{vehicle.vehicleCode}</td>
                   <td className="td font-medium">{vehicle.fleetNumber}</td>
                   <td className="td">{vehicle.driverName ?? 'Unassigned'}</td>
                   <td className="td">{vehicle.route}</td>

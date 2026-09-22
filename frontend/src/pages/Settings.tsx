@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Camera, Fuel, KeyRound, ShieldAlert, UserRound } from 'lucide-react'
+import { Camera, Fuel, KeyRound, ShieldAlert, UserRound } from '@/components/icons'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Avatar, Card, CardHeader, ErrorNote, Field, PageHeader, Spinner } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
@@ -72,10 +72,10 @@ export default function Settings() {
 
   return (
     <>
-      <PageHeader title="Settings" subtitle="Your administrator profile and sign-in security." />
+      <PageHeader title="Settings" subtitle="Your profile, sign-in security and the fuel prices used to cost trips." />
 
       {admin?.mustChangePassword && (
-        <div className="mb-4 flex items-start gap-3 rounded-2xl border border-warning-100 bg-warning-50 p-4 text-sm text-warning-700">
+        <div className="mb-4 flex items-start gap-3 rounded-lg border border-warning-100 bg-warning-50 p-4 text-sm text-warning-700">
           <ShieldAlert size={18} className="mt-0.5 shrink-0" />
           <p>
             <strong>Change your password.</strong> This account still uses the password it was provisioned with.
@@ -84,8 +84,7 @@ export default function Settings() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <FuelPrices />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title="Profile" subtitle={`Admin ID ${admin?.adminCode ?? '—'} · ${admin?.role ?? ''}`} />
           <form className="space-y-4 p-5" onSubmit={saveProfile}>
@@ -158,6 +157,7 @@ export default function Settings() {
             </div>
           </form>
         </Card>
+        <FuelPrices />
       </div>
     </>
   )
@@ -194,12 +194,17 @@ function FuelPrices() {
         subtitle="Used to cost every trip. Shipments keep the price they were planned with."
         action={<Fuel size={18} className="text-ink-faint" />}
       />
-      <div className="grid gap-4 p-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
+        {prices.data?.length === 0 && (
+          <p className="text-sm text-ink-soft sm:col-span-2">
+            No fuel prices are set, so trip fuel costs can't be estimated. The database migrations add them; restart the API to apply them.
+          </p>
+        )}
         {prices.data?.map((price) => (
-          <div key={price.fuelType} className="rounded-xl border border-line p-4">
+          <div key={price.fuelType} className="rounded-md border border-line p-4">
             <div className="flex items-baseline justify-between">
               <p className="font-semibold">{price.fuelType}</p>
-              <p className="tabular text-lg font-bold">
+              <p className="tabular text-lg font-semibold">
                 ₦{price.pricePerLitre.toLocaleString()}
                 <span className="ml-1 text-xs font-medium text-ink-faint">per litre</span>
               </p>

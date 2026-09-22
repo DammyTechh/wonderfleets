@@ -1,14 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, X } from 'lucide-react'
+import { Plus, X } from '@/components/icons'
 import { useState } from 'react'
 import { api, errorMessage } from '@/lib/api'
 import { ErrorNote, Field, Modal, Spinner } from './ui'
+import { label } from '@/lib/format'
 
 const AVAILABILITY = ['AvailableNow', 'AvailableSoon', 'FullyBooked', 'Unavailable'] as const
 const INSURANCE = ['GoodsInTransit', 'ComprehensiveFleet', 'ThirdParty', 'MarineCargo', 'Other'] as const
 const TRUCK_TYPES = ['Refrigerated truck', 'Insulated truck', 'Open-body truck', 'Van', 'Trailer']
 
-const spaced = (value: string) => value.replace(/([a-z])([A-Z])/g, '$1 $2')
+const spaced = label
 
 /** Mirrors the four Add a Partner tabs: company, fleet, operations and compliance. */
 export function CreatePartnerDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -75,7 +76,7 @@ export function CreatePartnerDialog({ open, onClose }: { open: boolean; onClose:
   return (
     <Modal open={open} title="Add a logistics partner" description="Company, fleet, operations and compliance." onClose={close} width="max-w-2xl">
       <div className="space-y-5">
-        <section className="grid gap-4 sm:grid-cols-2">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Company name">
             <input className="input" value={form.companyName} onChange={(event) => set('companyName', event.target.value)} />
           </Field>
@@ -102,7 +103,7 @@ export function CreatePartnerDialog({ open, onClose }: { open: boolean; onClose:
           </Field>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-3">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Fleet size">
             <input className="input tabular" type="number" min="0" value={form.fleetSize} onChange={(event) => set('fleetSize', event.target.value)} />
           </Field>
@@ -196,7 +197,7 @@ export function CreatePartnerDialog({ open, onClose }: { open: boolean; onClose:
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-3">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Availability">
             <select className="input" value={form.availabilityStatus} onChange={(event) => set('availabilityStatus', event.target.value)}>
               {AVAILABILITY.map((option) => (

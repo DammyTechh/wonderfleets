@@ -22,6 +22,9 @@ const CITIES = [
   { name: 'Benin City', lat: 6.335, lng: 5.6037 },
 ]
 
+const LATITUDES = [6, 8, 10, 12]
+const LONGITUDES = [4, 6, 8, 10, 12, 14]
+
 const project = (lat: number, lng: number) => ({
   x: ((lng - BOUNDS.minLng) / (BOUNDS.maxLng - BOUNDS.minLng)) * 100,
   y: (1 - (lat - BOUNDS.minLat) / (BOUNDS.maxLat - BOUNDS.minLat)) * 100,
@@ -43,38 +46,36 @@ export function FleetMap({ markers, height = 380 }: { markers: MapMarker[]; heig
   )
 
   return (
-    <div className="relative bg-[linear-gradient(180deg,#f2f7f4,#eaf2ee)]" style={{ height }}>
+    <div className="relative overflow-hidden bg-[#EEF3F6]" style={{ height }}>
+      {/* A real graticule every 2°, so positions read against actual latitude and longitude. */}
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-        <defs>
-          <pattern id="wf-grid" width="8" height="8" patternUnits="userSpaceOnUse">
-            <path d="M8 0H0v8" fill="none" stroke="#d7e4dc" strokeWidth="0.25" />
-          </pattern>
-        </defs>
-        <rect width="100" height="100" fill="url(#wf-grid)" />
-        {/* Indicative Lagos–Ibadan–Abuja–Kano corridor */}
-        <polyline
-          points={[CITIES[0], CITIES[1], CITIES[2], CITIES[4]]
-            .map((city) => {
-              const point = project(city.lat, city.lng)
-              return `${point.x},${point.y}`
-            })
-            .join(' ')}
-          fill="none"
-          stroke="#b0e9c9"
-          strokeWidth="0.8"
-          strokeDasharray="2 1.5"
-        />
+        {LATITUDES.map((lat) => {
+          const y = project(lat, BOUNDS.minLng).y
+          return <line key={`lat${lat}`} x1="0" x2="100" y1={y} y2={y} stroke="#D9E2E9" strokeWidth="0.3" vectorEffect="non-scaling-stroke" />
+        })}
+        {LONGITUDES.map((lng) => {
+          const x = project(BOUNDS.minLat, lng).x
+          return <line key={`lng${lng}`} y1="0" y2="100" x1={x} x2={x} stroke="#D9E2E9" strokeWidth="0.3" vectorEffect="non-scaling-stroke" />
+        })}
       </svg>
+      {LATITUDES.map((lat) => (
+        <span key={`latl${lat}`} className="pointer-events-none absolute right-2 hidden -translate-y-1/2 text-[10px] text-ink-faint sm:block"
+          style={{ top: `${project(lat, BOUNDS.minLng).y}%` }}>{lat}°N</span>
+      ))}
+      {LONGITUDES.map((lng) => (
+        <span key={`lngl${lng}`} className="pointer-events-none absolute top-1.5 -translate-x-1/2 text-[10px] text-ink-faint"
+          style={{ left: `${project(BOUNDS.minLat, lng).x}%` }}>{lng}°E</span>
+      ))}
 
       {CITIES.map((city) => {
         const point = project(city.lat, city.lng)
         return (
           <span
             key={city.name}
-            className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 text-[10px] font-medium uppercase tracking-wide text-ink-faint"
+            className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] text-ink-soft"
             style={{ left: `${point.x}%`, top: `${point.y}%` }}
           >
-            <span className="mr-1 inline-block h-1 w-1 rounded-full bg-ink-faint align-middle" />
+            <span className="mr-1 inline-block h-1 w-1 rounded-full bg-ink-soft align-middle" />
             {city.name}
           </span>
         )
@@ -107,7 +108,7 @@ export function FleetMap({ markers, height = 380 }: { markers: MapMarker[]; heig
 
       {active && (
         <div
-          className="absolute z-10 w-64 -translate-x-1/2 rounded-xl border border-line bg-surface p-3 shadow-pop"
+          className="absolute z-10 w-64 -translate-x-1/2 rounded-lg border border-line bg-surface p-3 shadow-pop"
           style={{
             left: `${Math.min(Math.max(project(active.latitude, active.longitude).x, 18), 82)}%`,
             top: `${Math.min(project(active.latitude, active.longitude).y + 4, 74)}%`,
@@ -115,7 +116,7 @@ export function FleetMap({ markers, height = 380 }: { markers: MapMarker[]; heig
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold">{active.vehicleCode}</p>
+              <p className="text-sm font-medium">{active.fleetNumber} <span className="font-normal text-ink-soft">{active.vehicleCode}</span></p>
               <p className="text-xs text-ink-soft">{active.route}</p>
             </div>
             <span className={clsx('mt-1 h-2.5 w-2.5 rounded-full', markerColour[active.sensorStatus])} />
@@ -133,11 +134,11 @@ export function FleetMap({ markers, height = 380 }: { markers: MapMarker[]; heig
             <dd className="text-right font-medium">{since(active.lastPositionAt)}</dd>
           </dl>
           <div className="mt-3 flex gap-2">
-            <Link to={`/trips/${active.tripId}`} className="btn-secondary flex-1 px-2 py-1.5 text-xs">
-              Shipment
+            <Link to={`/trips/${active.tripId}`} className="btn-secondary h-8 flex-1 px-2 text-xs">
+              View shipment
             </Link>
             <a
-              className="btn-secondary flex-1 px-2 py-1.5 text-xs"
+              className="btn-secondary h-8 flex-1 px-2 text-xs"
               target="_blank"
               rel="noreferrer"
               href={`https://www.google.com/maps?q=${active.latitude},${active.longitude}`}
@@ -150,11 +151,11 @@ export function FleetMap({ markers, height = 380 }: { markers: MapMarker[]; heig
 
       {plotted.length === 0 && (
         <p className="absolute inset-0 grid place-items-center text-sm text-ink-faint">
-          No live positions yet — devices report as soon as a trip starts.
+          No positions yet. Trucks appear here once a trip starts.
         </p>
       )}
 
-      <div className="absolute bottom-3 left-3 flex flex-wrap gap-3 rounded-xl border border-line bg-surface/90 px-3 py-2 text-[11px] font-medium text-ink-soft backdrop-blur">
+      <div className="absolute bottom-3 right-3 flex flex-wrap gap-3 rounded-md border border-line bg-surface px-2.5 py-1.5 text-[11px] text-ink-soft">
         {(['Normal', 'Warning', 'Critical', 'Offline'] as const).map((status) => (
           <span key={status} className="flex items-center gap-1.5">
             <span className={clsx('h-2 w-2 rounded-full', markerColour[status])} />

@@ -1,9 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { BellRing, CheckCheck, CircleAlert, Info, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { BellRing, CheckCheck, ShieldCheck } from '@/components/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Card, CardHeader, EmptyState, ErrorNote, Loading, PageHeader, Pagination, StatusChip, Table, Toggle } from '@/components/ui'
+import { StatCard, StatStrip, Card, CardHeader, EmptyState, ErrorNote, Loading, PageHeader, Pagination, StatusChip, Table, Toggle } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { since } from '@/lib/format'
 import { keys, useAlertActivity, useAlertRules, useAlertSummary, useAlerts, useChannels } from '@/lib/queries'
@@ -13,6 +13,8 @@ const STATES = [
   { key: 'resolved', label: 'Resolved' },
   { key: 'all', label: 'All' },
 ] as const
+
+const channelName: Record<string, string> = { Email: 'Email', Sms: 'SMS', InApp: 'In-app' }
 
 export default function Alerts() {
   const queryClient = useQueryClient()
@@ -50,38 +52,20 @@ export default function Alerts() {
     <>
       <PageHeader title="Alerts" subtitle="Heat, humidity, route and device conditions that need attention." />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ['Critical', summary.data?.critical ?? 0, CircleAlert, 'critical'],
-          ['Warning', summary.data?.warning ?? 0, TriangleAlert, 'warning'],
-          ['Informational', summary.data?.informational ?? 0, Info, 'info'],
-          [`Resolved (${summary.data?.resolvedWindowDays ?? 30}d)`, summary.data?.resolved ?? 0, ShieldCheck, 'brand'],
-        ].map(([label, value, Icon, tone]) => {
-          const IconComponent = Icon as typeof CircleAlert
-          const tones: Record<string, string> = {
-            critical: 'bg-critical-50 text-critical-700',
-            warning: 'bg-warning-50 text-warning-700',
-            info: 'bg-info-50 text-info-700',
-            brand: 'bg-brand-50 text-brand-700',
-          }
-          return (
-            <Card key={String(label)} className="flex items-center gap-3 p-4">
-              <span className={clsx('grid h-11 w-11 place-items-center rounded-xl', tones[String(tone)])}>
-                <IconComponent size={19} />
-              </span>
-              <span>
-                <span className="block text-xs font-medium uppercase tracking-wide text-ink-faint">{String(label)}</span>
-                <span className="tabular block text-2xl font-bold">{Number(value)}</span>
-              </span>
-            </Card>
-          )
-        })}
-      </div>
+      <StatStrip columns={4}>
+        <StatCard inStrip label="Critical" value={String(summary.data?.critical ?? 0)}
+          tone={(summary.data?.critical ?? 0) > 0 ? 'critical' : 'default'} hint="need action now" />
+        <StatCard inStrip label="Warning" value={String(summary.data?.warning ?? 0)}
+          tone={(summary.data?.warning ?? 0) > 0 ? 'warning' : 'default'} hint="need attention" />
+        <StatCard inStrip label="Informational" value={String(summary.data?.informational ?? 0)} hint="for your information" />
+        <StatCard inStrip label="Resolved" value={String(summary.data?.resolved ?? 0)}
+          hint={`in the last ${summary.data?.resolvedWindowDays ?? 30} days`} />
+      </StatStrip>
 
       {actionError && <ErrorNote message={actionError} />}
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-        <Card className="overflow-hidden">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.7fr_1fr]">
+        <Card className="self-start overflow-hidden">
           <div className="flex gap-1 border-b border-line p-3">
             {STATES.map((option) => (
               <button
@@ -196,11 +180,11 @@ export default function Alerts() {
                 <li key={channel.id} className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">{channel.channel === 'Sms' ? 'SMS' : channel.channel}</span>
+                      <span className="block text-sm font-medium">{channelName[channel.channel] ?? channel.channel}</span>
                       <span className="block text-xs text-ink-faint">{channel.display}</span>
                     </span>
                     <Toggle
-                      label={`${channel.channel} enabled`}
+                      label={`${channelName[channel.channel] ?? channel.channel} enabled`}
                       checked={channel.isEnabled}
                       onChange={(checked) => act(api.put(`/alerts/channels/${channel.id}`, { isEnabled: checked, criticalOnly: channel.criticalOnly }))}
                     />
@@ -224,12 +208,13 @@ export default function Alerts() {
           <Card>
             <CardHeader title="Alerts activity" subtitle="Last 7 days by category" />
             <div className="overflow-x-auto p-5">
-              <table className="w-full">
+              <table className="w-full table-fixed">
+                <colgroup><col className="w-24" />{activity.data?.days.map((d) => <col key={d} />)}</colgroup>
                 <thead>
                   <tr>
                     <th />
                     {activity.data?.days.map((dayLabel) => (
-                      <th key={dayLabel} className="pb-2 text-[11px] font-medium text-ink-faint">
+                      <th key={dayLabel} className="pb-2 text-xs font-normal text-ink-soft">
                         {dayLabel}
                       </th>
                     ))}
@@ -245,7 +230,7 @@ export default function Alerts() {
                           <td key={dayLabel} className="p-1">
                             <span
                               title={`${cell?.count ?? 0} alerts`}
-                              className={clsx('block h-7 w-full rounded-md', levelColour[cell?.level ?? 'None'])}
+                              className={clsx('block h-6 w-full rounded-sm', levelColour[cell?.level ?? 'None'])}
                             />
                           </td>
                         )

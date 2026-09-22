@@ -70,6 +70,8 @@ public static class DependencyInjection
         services.AddScoped<ITelemetryIngestionService, TelemetryIngestionService>();
         services.AddScoped<ITelemetryMonitor, TelemetryMonitor>();
 
+
+
         return services;
     }
 }

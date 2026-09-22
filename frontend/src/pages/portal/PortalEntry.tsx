@@ -40,9 +40,9 @@ export default function PortalEntry() {
     <div className="grid min-h-screen place-items-center bg-surface-muted px-6">
       <div className="w-full max-w-md text-center">
         <img src="/wonderfleet-logo.png" alt="WonderFleet" className="mx-auto h-11 w-auto" />
-        <p className="mt-3 font-display text-xl font-bold text-brand-900">WonderFleet</p>
+        <p className="mt-3 font-display text-xl font-semibold text-brand-900">WonderFleet</p>
         {error ? (
-          <div className="mt-6 rounded-2xl border border-critical-100 bg-critical-50 p-5 text-sm text-critical-700">
+          <div className="mt-6 rounded-lg border border-critical-100 bg-critical-50 p-5 text-sm text-critical-700">
             <p className="font-semibold">This tracking link is not working</p>
             <p className="mt-1">{error}</p>
             <p className="mt-3 text-xs text-critical-600">

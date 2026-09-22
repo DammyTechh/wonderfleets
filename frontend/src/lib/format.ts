@@ -35,3 +35,28 @@ export const initials = (name?: string | null) =>
 export const watLabel = () => `${format(new Date(), 'HH:mm:ss')} WAT`
 
 export { WAT }
+
+/** Names the API sends as enum identifiers, where splitting words isn't enough. */
+const KNOWN_LABELS: Record<string, string> = {
+  CacCertificate: 'CAC certificate',
+  InApp: 'In-app',
+  Sms: 'SMS',
+  GoodsInTransit: 'Goods in transit',
+}
+/** Words that stay in capitals when an identifier is turned into a label. */
+const ACRONYMS = new Set(['CAC', 'SMS', 'GPS', 'CO2', 'PDF', 'CSV'])
+
+/**
+ * Turns an API identifier into a sentence-case label: "InTransit" → "In transit",
+ * "AvailableNow" → "Available now", "CacCertificate" → "CAC certificate".
+ */
+export function label(identifier: string): string {
+  if (KNOWN_LABELS[identifier]) return KNOWN_LABELS[identifier]
+  const words = identifier.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ')
+  return words
+    .map((word, index) => {
+      if (ACRONYMS.has(word.toUpperCase())) return word.toUpperCase()
+      return index === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word.toLowerCase()
+    })
+    .join(' ')
+}

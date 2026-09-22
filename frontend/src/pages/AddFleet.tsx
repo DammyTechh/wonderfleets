@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, Check, CircleCheck, Cpu, Fuel, MapPin, Package, Plus, RefreshCw, Search, Thermometer, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CircleCheck, Cpu, Fuel, MapPin, Package, Plus, RefreshCw, Search, Thermometer, X } from '@/components/icons'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Avatar, Card, ErrorNote, Field, PageHeader, Spinner, StatusChip } from '@/components/ui'
@@ -241,13 +241,13 @@ export default function AddFleet() {
                 onClick={() => goTo(index)}
                 className={clsx(
                   'flex w-full items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition',
-                  index === tab ? 'bg-surface text-brand-800 shadow-[inset_0_-2px_0_0_#158554]'
+                  index === tab ? 'bg-surface text-brand-800 shadow-[inset_0_-2px_0_0_#63883C]'
                     : index < tab ? 'text-brand-700 hover:bg-surface' : 'text-ink-faint hover:bg-surface',
                 )}
               >
                 <span
                   className={clsx(
-                    'grid h-5 w-5 place-items-center rounded-full text-[11px] font-bold',
+                    'grid h-5 w-5 place-items-center rounded-full text-[11px] font-semibold',
                     index < tab ? 'bg-brand-600 text-white' : index === tab ? 'bg-brand-100 text-brand-800' : 'bg-line text-ink-faint',
                   )}
                 >
@@ -260,7 +260,7 @@ export default function AddFleet() {
         </ol>
 
         {errors.length > 0 && (
-          <ul className="m-5 space-y-1 rounded-xl border border-critical-100 bg-critical-50 p-4 text-sm text-critical-700">
+          <ul className="m-5 space-y-1 rounded-md border border-critical-100 bg-critical-50 p-4 text-sm text-critical-700">
             {errors.map((message) => (
               <li key={message}>• {message}</li>
             ))}
@@ -270,9 +270,9 @@ export default function AddFleet() {
         <div className="p-5">
           {/* ---------------------------------------------------------- tab 1 */}
           {tab === 0 && (
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Field label="Vehicle ID" hint="Generated automatically when you submit.">
-                <input className="input font-mono" disabled value={nextCode.data?.vehicleCode ?? 'TRK-…'} />
+                <input className="input tabular" disabled value={nextCode.data?.vehicleCode ?? 'TRK-…'} />
               </Field>
               <Field label="Logistics partner">
                 <select className="input" value={state.logisticsPartnerId} onChange={(event) => set('logisticsPartnerId', event.target.value)}>
@@ -321,7 +321,7 @@ export default function AddFleet() {
           {/* ---------------------------------------------------------- tab 2 */}
           {tab === 1 && (
             <div className="space-y-6">
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <Field label="Agro-processor" hint="Who owns the produce — they receive their own tracking link.">
                   <select className="input" value={state.agroProcessorId} onChange={(event) => set('agroProcessorId', event.target.value)}>
                     <option value="">Select an agro-processor</option>
@@ -394,7 +394,7 @@ export default function AddFleet() {
                 </div>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <Field label="Packaging">
                   <select className="input" value={state.packagingType} onChange={(event) => set('packagingType', event.target.value)}>
                     {PACKAGING.map((option) => (
@@ -434,13 +434,13 @@ export default function AddFleet() {
                   <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
                   <input className="input pl-9" placeholder="Search available drivers" value={driverSearch} onChange={(event) => setDriverSearch(event.target.value)} />
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {drivers.data?.items.map((driver) => (
                     <button
                       key={driver.id}
                       onClick={() => set('driverId', state.driverId === driver.id ? '' : driver.id)}
                       className={clsx(
-                        'flex items-center gap-3 rounded-xl border p-3 text-left transition',
+                        'flex items-center gap-3 rounded-md border p-3 text-left transition',
                         state.driverId === driver.id ? 'border-brand-400 bg-brand-50' : 'border-line hover:bg-surface-muted',
                       )}
                     >
@@ -467,18 +467,18 @@ export default function AddFleet() {
                 <div className="mb-3">
                   <FirebaseDevicesPanel />
                 </div>
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {devices.data?.items.map((device) => (
                     <button
                       key={device.id}
                       onClick={() => set('deviceId', state.deviceId === device.id ? '' : device.id)}
                       className={clsx(
-                        'rounded-xl border p-3 text-left transition',
+                        'rounded-md border p-3 text-left transition',
                         state.deviceId === device.id ? 'border-brand-400 bg-brand-50' : 'border-line hover:bg-surface-muted',
                       )}
                     >
                       <span className="flex items-center justify-between">
-                        <span className="flex items-center gap-2 font-mono text-sm font-semibold">
+                        <span className="flex items-center gap-2 tabular text-sm font-semibold">
                           <Cpu size={15} /> {device.serial}
                         </span>
                         <StatusChip status={device.isOnline ? 'Normal' : 'Offline'} />
@@ -512,16 +512,16 @@ export default function AddFleet() {
                   <Thermometer size={15} /> Temperature & humidity thresholds
                 </span>
                 {suggestion.data?.thresholds && !thresholdsTouched && (
-                  <p className="mb-3 rounded-xl border border-brand-100 bg-brand-50 px-3.5 py-2.5 text-xs text-brand-800">
+                  <p className="mb-3 rounded-md border border-brand-100 bg-brand-50 px-3.5 py-2.5 text-xs text-brand-800">
                     Suggested from the selected produce ({suggestion.data.source.replace('_', ' ')}). {suggestion.data.notes[0]}
                   </p>
                 )}
                 {suggestion.data && !suggestion.data.thresholds && (
-                  <p className="mb-3 rounded-xl border border-warning-100 bg-warning-50 px-3.5 py-2.5 text-xs text-warning-700">
+                  <p className="mb-3 rounded-md border border-warning-100 bg-warning-50 px-3.5 py-2.5 text-xs text-warning-700">
                     {suggestion.data.notes[0]}
                   </p>
                 )}
-                <div className="grid gap-4 sm:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                   {([
                     ['minTemperature', 'Min temp (°C)'],
                     ['maxTemperature', 'Max temp (°C)'],
@@ -552,7 +552,7 @@ export default function AddFleet() {
           {/* ---------------------------------------------------------- tab 4 */}
           {tab === 3 && (
             <div className="space-y-5">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <ReviewBlock
                   icon={<MapPin size={15} />}
                   title="Vehicle"
@@ -586,7 +586,7 @@ export default function AddFleet() {
                     ['Humidity', `${state.thresholds.minHumidity}–${state.thresholds.maxHumidity} % RH`],
                   ]}
                 />
-                <div className="rounded-xl border border-line p-4">
+                <div className="rounded-md border border-line p-4">
                   <p className="text-sm font-semibold">Dispatch</p>
                   <label className="mt-3 flex items-start gap-3 text-sm">
                     <input
@@ -605,7 +605,7 @@ export default function AddFleet() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-line p-4">
+              <div className="rounded-md border border-line p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <p className="flex items-center gap-2 text-sm font-semibold">
                     <Fuel size={15} /> Fuel for this trip
@@ -652,7 +652,7 @@ export default function AddFleet() {
 
 function ReviewBlock({ icon, title, rows }: { icon: React.ReactNode; title: string; rows: [string, string][] }) {
   return (
-    <div className="rounded-xl border border-line p-4">
+    <div className="rounded-md border border-line p-4">
       <p className="flex items-center gap-2 text-sm font-semibold">
         {icon} {title}
       </p>

@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, X } from 'lucide-react'
+import { Plus, X } from '@/components/icons'
 import { useState } from 'react'
 import { api, errorMessage } from '@/lib/api'
 import { ErrorNote, Field, Modal, Spinner } from './ui'
@@ -59,7 +59,7 @@ export function CreateProcessorDialog({ open, onClose }: { open: boolean; onClos
       width="max-w-2xl"
     >
       <div className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Processor name">
             <input className="input" value={form.name} onChange={(event) => set('name', event.target.value)} />
           </Field>
@@ -84,8 +84,8 @@ export function CreateProcessorDialog({ open, onClose }: { open: boolean; onClos
           <span className="label">Contact persons</span>
           <div className="space-y-3">
             {contacts.map((contact, index) => (
-              <div key={index} className="rounded-xl border border-line p-3">
-                <div className="grid gap-2 sm:grid-cols-3">
+              <div key={index} className="rounded-md border border-line p-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <input className="input" placeholder="Full name" value={contact.fullName}
                     onChange={(event) => setContacts(contacts.map((item, i) => (i === index ? { ...item, fullName: event.target.value } : item)))} />
                   <input className="input" placeholder="+2348031234567" value={contact.phoneNumber}

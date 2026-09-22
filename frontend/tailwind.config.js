@@ -4,9 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Figma uses Poppins throughout. Inter is the metric-compatible fallback.
-        display: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
-        sans: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+        // IBM Plex Sans: drawn for engineering software. Tabular figures keep readings aligned.
+        display: ['"IBM Plex Sans"', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+        sans: ['"IBM Plex Sans"', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
@@ -25,7 +25,7 @@ export default {
         accent: { soft: '#CCDCFC', DEFAULT: '#5880E4', 600: '#4A6FCC', 700: '#3C6AD0' },
         ink: { DEFAULT: '#18203C', soft: '#687C88', faint: '#98A4AC' },
         surface: { DEFAULT: '#FCFCFC', muted: '#F0F6FA', sunken: '#F4F8FC' },
-        line: { DEFAULT: '#E4E8EC', strong: '#D8DCE0' },
+        line: { DEFAULT: '#DEE4EA', strong: '#CCD5DD' },
         critical: { 50: '#FBEEEE', 100: '#F7E2E2', 500: '#C4403C', 600: '#B03734', 700: '#932C2A' },
         warning: { 50: '#FBF5E8', 100: '#F6EBD4', 500: '#C08A2C', 600: '#A97724', 700: '#8B611C' },
         normal: { 50: '#EFF7EC', 100: '#DCEFD6', 500: '#4E8C3C', 600: '#437A33', 700: '#376428' },
@@ -34,7 +34,8 @@ export default {
         live: '#2FA84F',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(24, 32, 60, 0.04), 0 1px 3px rgba(24, 32, 60, 0.06)',
+        // Panels are defined by hairline borders, not shadows; only floating layers cast one.
+        card: 'none',
         pop: '0 8px 24px rgba(24, 32, 60, 0.12)',
       },
       borderRadius: { xl: '0.625rem', '2xl': '0.875rem' },
