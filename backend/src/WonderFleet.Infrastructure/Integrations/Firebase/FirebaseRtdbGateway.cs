@@ -122,11 +122,32 @@ internal sealed class FirebaseRtdbGateway(
         {
             // Environment variables often carry the JSON base64-encoded to avoid newline mangling.
             try { json = Encoding.UTF8.GetString(Convert.FromBase64String(json)); }
-            catch (FormatException) { /* fall through: let the parser report it */ }
+            catch (FormatException)
+            {
+                throw new InvalidOperationException(
+                    "Firebase:ServiceAccountJson is neither JSON nor valid base64. Paste the downloaded key file's contents, or base64-encode it.");
+            }
         }
-        var credential = GoogleCredential.FromJson(json).CreateScoped(Scopes);
-        return credential.UnderlyingCredential as ServiceAccountCredential
-            ?? throw new InvalidOperationException("Firebase:ServiceAccountJson must be a service account key.");
+
+        // Built from the key fields directly rather than GoogleCredential.FromJson, which newer
+        // Google.Apis.Auth releases mark obsolete. Checking "type" ourselves is exactly the
+        // validation Google's deprecation asks for: only a service account key is accepted.
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+        string Field(string name) =>
+            root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String && value.GetString() is { Length: > 0 } text
+                ? text
+                : throw new InvalidOperationException($"Firebase:ServiceAccountJson is missing \"{name}\". Use the key file from Project settings → Service accounts.");
+
+        if (Field("type") != "service_account")
+            throw new InvalidOperationException("Firebase:ServiceAccountJson must be a service account key (\"type\": \"service_account\").");
+
+        var initializer = new ServiceAccountCredential.Initializer(Field("client_email"))
+        {
+            Scopes = Scopes,
+        }.FromPrivateKey(Field("private_key"));
+
+        return new ServiceAccountCredential(initializer);
     }
 
     internal static DeviceSnapshot? Parse(string key, JsonObject node)

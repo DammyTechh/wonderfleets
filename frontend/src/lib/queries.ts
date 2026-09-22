@@ -3,7 +3,7 @@ import { api } from './api'
 import type {
   Alert, AlertActivity, AlertRule, AnalyticsOverview, ChannelSetting, Dashboard, Device, Driver,
   FleetRow, FuelPrice, LiveTracking, NotificationItem, Paged, PartnerListItem, PartnerProfile, ProcessorListItem, ProduceType,
-  ReportCatalogItem, RouteRecommendation, ShareLink, ShareLinkCreated, TripDetail, TripSummary,
+  FirebaseStatus, ReportCatalogItem, RouteRecommendation, ShareLink, ShareLinkCreated, TripDetail, TripSummary,
 } from './types'
 
 const get = async <T,>(url: string, params?: Record<string, unknown>) =>
@@ -20,6 +20,7 @@ export const keys = {
   processors: (params: unknown) => ['processors', params] as const,
   drivers: (params: unknown) => ['drivers', params] as const,
   devices: (params: unknown) => ['devices', params] as const,
+  firebaseStatus: ['devices', 'firebase-status'] as const,
   produce: ['produce'] as const,
   alerts: (params: unknown) => ['alerts', params] as const,
   alertSummary: ['alerts', 'summary'] as const,
@@ -38,13 +39,13 @@ export const useDashboard = () =>
   useQuery({ queryKey: keys.dashboard, queryFn: () => get<Dashboard>('/dashboard'), refetchInterval: 30_000 })
 
 export const useFleet = (params: Record<string, unknown>) =>
-  useQuery({ queryKey: keys.fleet(params), queryFn: () => get<Paged<FleetRow>>('/fleet', params) })
+  useQuery({ queryKey: keys.fleet(params), queryFn: () => get<Paged<FleetRow>>('/fleet', params), refetchInterval: 60_000 })
 
 export const useTrips = (params: Record<string, unknown>) =>
   useQuery({ queryKey: keys.trips(params), queryFn: () => get<Paged<TripSummary>>('/trips', params) })
 
 export const useTrip = (id?: string) =>
-  useQuery({ queryKey: keys.trip(id ?? ''), queryFn: () => get<TripDetail>(`/trips/${id}`), enabled: Boolean(id) })
+  useQuery({ queryKey: keys.trip(id ?? ''), queryFn: () => get<TripDetail>(`/trips/${id}`), enabled: Boolean(id), refetchInterval: 60_000 })
 
 export const useLiveTracking = () =>
   useQuery({ queryKey: keys.tracking, queryFn: () => get<LiveTracking>('/tracking/live'), refetchInterval: 20_000 })
@@ -74,11 +75,21 @@ export const useDrivers = (params: Record<string, unknown>) =>
 export const useDevices = (params: Record<string, unknown>) =>
   useQuery({ queryKey: keys.devices(params), queryFn: () => get<Paged<Device>>('/devices', params) })
 
+/** Polls with the API so newly transmitting hardware appears without a page reload. */
+export const useFirebaseStatus = () =>
+  useQuery({ queryKey: keys.firebaseStatus, queryFn: () => get<FirebaseStatus>('/devices/firebase-status'), refetchInterval: 15_000 })
+
+/** Registers a Firebase node as a device. The key doubles as the serial, which is how the firmware names it. */
+export const registerDevice = (firebaseKey: string) =>
+  api.post<{ id: string }>('/devices', {
+    serial: firebaseKey, firebaseKey, kind: 'Master', parentDeviceId: null, vehicleId: null, firmwareVersion: null,
+  }).then((r) => r.data)
+
 export const useProduceTypes = () =>
   useQuery({ queryKey: keys.produce, queryFn: () => get<ProduceType[]>('/produce-types'), staleTime: 300_000 })
 
 export const useAlerts = (params: Record<string, unknown>) =>
-  useQuery({ queryKey: keys.alerts(params), queryFn: () => get<Paged<Alert>>('/alerts', params) })
+  useQuery({ queryKey: keys.alerts(params), queryFn: () => get<Paged<Alert>>('/alerts', params), refetchInterval: 60_000 })
 
 export const useAlertSummary = () =>
   useQuery({ queryKey: keys.alertSummary, queryFn: () => get<{ critical: number; warning: number; informational: number; resolved: number; resolvedWindowDays: number }>('/alerts/summary'), refetchInterval: 60_000 })
@@ -91,7 +102,7 @@ export const useAlertActivity = (days = 7) =>
   useQuery({ queryKey: keys.activity(days), queryFn: () => get<AlertActivity>('/alerts/activity', { days }) })
 
 export const useNotifications = (params: Record<string, unknown>) =>
-  useQuery({ queryKey: keys.notifications(params), queryFn: () => get<Paged<NotificationItem>>('/notifications', params) })
+  useQuery({ queryKey: keys.notifications(params), queryFn: () => get<Paged<NotificationItem>>('/notifications', params), refetchInterval: 60_000 })
 
 export const useUnreadCount = () =>
   useQuery({ queryKey: keys.unread, queryFn: () => get<{ unread: number }>('/notifications/unread-count'), refetchInterval: 60_000 })
@@ -107,6 +118,9 @@ export const useShareLinks = (params: Record<string, unknown>) =>
 
 export const useRouteRecommendations = () =>
   useQuery({ queryKey: keys.routeAi, queryFn: () => get<Paged<RouteRecommendation>>('/route-ai', { pageSize: 5 }) })
+
+// Intervals above are a safety net only. Live updates arrive through useLiveUpdates (lib/live.ts)
+// within about a second; polling just guarantees nothing freezes if the socket is down.
 
 /** Generic mutation helper that refreshes the affected lists. */
 export function useApiMutation<TInput, TResult>(

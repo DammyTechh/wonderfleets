@@ -156,6 +156,9 @@ internal static class PartnerEndpoints
         // Keys seen in Firebase that are not registered yet (helps onboarding new hardware).
         group.MapGet("/unknown-keys", (IDeviceService service) => Results.Ok(service.GetUnknownKeys()));
 
+        // Polling state plus unregistered keys: why device data is, or is not, arriving.
+        group.MapGet("/firebase-status", (IDeviceService service) => Results.Ok(service.GetFirebaseStatus()));
+
         group.MapGet("/{id:guid}", (Guid id, IDeviceService service, CancellationToken ct) => service.GetAsync(id, ct));
 
         group.MapPost("/", async (RegisterDeviceRequest request, IDeviceService service, CancellationToken ct) =>

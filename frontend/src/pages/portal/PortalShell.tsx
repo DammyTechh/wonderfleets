@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom'
 import { dt } from '@/lib/format'
 import { tokens } from '@/lib/api'
 import type { PortalSession } from '@/lib/types'
+import { usePortalLiveUpdates } from '@/lib/live'
 
 export function usePortalSession(expected: PortalSession['audience']) {
   const token = tokens.restorePortal()
@@ -19,6 +20,8 @@ export function PortalShell({
   subtitle: string
   children: ReactNode
 }) {
+  // Before the early return: hooks must run in the same order on every render.
+  const live = usePortalLiveUpdates(Boolean(session))
   if (!session) return <Navigate to="/track" replace />
   return (
     <div className="min-h-screen bg-surface-muted">
@@ -30,6 +33,10 @@ export function PortalShell({
               {session.organisationName} · {subtitle}
             </p>
           </div>
+          <span className="chip border-transparent bg-white/10 text-navy-dim">
+            <span className={live === 'live' ? 'h-2 w-2 rounded-full bg-live' : 'h-2 w-2 rounded-full bg-warning-500'} />
+            {live === 'live' ? 'Live' : 'Reconnecting…'}
+          </span>
           <span className="chip border-transparent bg-white/10 text-navy-dim">
             <Clock size={13} /> Link valid until {dt(session.linkExpiresAt)}
           </span>

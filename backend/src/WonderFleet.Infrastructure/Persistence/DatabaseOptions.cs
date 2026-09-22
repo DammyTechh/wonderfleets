@@ -16,10 +16,6 @@ public sealed class DatabaseOptions
     /// Managed Postgres (Render, Supabase) requires TLS. Only applied when the connection string does not say.
     public string SslMode { get; set; } = "Prefer";
 
-    /// Set when the provider presents a certificate the host does not have a CA for.
-    /// Prefer supplying the provider's root certificate and leaving this off.
-    public bool TrustServerCertificate { get; set; }
-
     /// Schemas searched for types and operator classes. Supabase installs extensions such as
     /// pg_trgm into the "extensions" schema, so the trigram indexes need it on the path.
     /// Naming a schema that does not exist is harmless.
@@ -50,7 +46,6 @@ public sealed class DatabaseOptions
             var sslMode = Enum.TryParse<SslMode>(options.SslMode, true, out var parsed) ? parsed : Npgsql.SslMode.Prefer;
             builder.SslMode = sslMode;
         }
-        if (options.TrustServerCertificate) builder.TrustServerCertificate = true;
 
         if (!string.IsNullOrWhiteSpace(options.SearchPath) && !builder.ContainsKey("Search Path"))
             builder.SearchPath = options.SearchPath;

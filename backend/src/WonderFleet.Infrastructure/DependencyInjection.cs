@@ -124,7 +124,13 @@ public static class DependencyInjection
     {
         services.AddSingleton<IEmailTemplateRenderer, EmailTemplateRenderer>();
 
-        var emailProvider = configuration["Email:Provider"] ?? "Log";
+        // A provider is only used when its credentials are present. With a blank key the
+        // message is written to the console instead, so a demo shows exactly what would
+        // have been sent rather than a column of failed deliveries.
+        static string Pick(string? provider, bool hasKey) =>
+            string.IsNullOrWhiteSpace(provider) || !hasKey ? "Log" : provider;
+
+        var emailProvider = Pick(configuration["Email:Provider"], !string.IsNullOrWhiteSpace(configuration["Email:ApiKey"]));
         if (string.Equals(emailProvider, "ResendApi", StringComparison.OrdinalIgnoreCase))
         {
             services.AddHttpClient<IEmailSender, ResendApiEmailSender>(client => client.Timeout = TimeSpan.FromSeconds(20))
@@ -139,7 +145,11 @@ public static class DependencyInjection
             services.AddSingleton<IEmailSender, LogEmailSender>();
         }
 
-        var smsProvider = configuration["Sms:Provider"] ?? "Log";
+        var smsProvider = configuration["Sms:Provider"];
+        smsProvider = string.Equals(smsProvider, "Twilio", StringComparison.OrdinalIgnoreCase)
+            ? Pick(smsProvider, !string.IsNullOrWhiteSpace(configuration["Sms:Twilio:AccountSid"])
+                                && !string.IsNullOrWhiteSpace(configuration["Sms:Twilio:AuthToken"]))
+            : Pick(smsProvider, !string.IsNullOrWhiteSpace(configuration["Sms:Termii:ApiKey"]));
         if (string.Equals(smsProvider, "Termii", StringComparison.OrdinalIgnoreCase))
         {
             services.AddHttpClient<ISmsSender, TermiiSmsSender>(client => client.Timeout = TimeSpan.FromSeconds(20))

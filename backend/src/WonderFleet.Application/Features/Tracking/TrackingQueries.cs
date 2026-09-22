@@ -101,21 +101,18 @@ internal sealed class TrackingQueries(IApplicationDbContext db, IClock clock, Te
 
     public async Task<FleetClimateDto> ClimateAsync(IQueryable<Trip> trips, CancellationToken ct)
     {
-        var agg = await trips.Where(t => t.Status != TripStatus.Scheduled)
-            .GroupBy(_ => 1)
-            .Select(g => new
-            {
-                Temp = g.Average(t => t.LastTemperature),
-                Hum = g.Average(t => t.LastHumidity),
-                HotCount = g.Sum(t => t.LastTemperature > t.MaxTemperature ? 1 : 0),
-                HumidCount = g.Sum(t => t.LastHumidity > t.MaxHumidity ? 1 : 0),
-            })
-            .FirstOrDefaultAsync(ct);
+        // Plain aggregates rather than GroupBy(constant).FirstOrDefault(): same result, and EF
+        // no longer logs "First without OrderBy" on every dashboard load.
+        var moving = trips.Where(t => t.Status != TripStatus.Scheduled);
+        var temperature = await moving.AverageAsync(t => t.LastTemperature, ct);
+        var humidity = await moving.AverageAsync(t => t.LastHumidity, ct);
+        var hot = await moving.CountAsync(t => t.LastTemperature > t.MaxTemperature, ct);
+        var humid = await moving.CountAsync(t => t.LastHumidity > t.MaxHumidity, ct);
         return new FleetClimateDto(
-            agg?.Temp is null ? null : Math.Round(agg.Temp.Value, 1),
-            agg is null || agg.HotCount == 0 ? "Within range" : "Above limit",
-            agg?.Hum is null ? null : Math.Round(agg.Hum.Value, 0),
-            agg is null || agg.HumidCount == 0 ? "Within range" : "Above limit");
+            temperature is null ? null : Math.Round(temperature.Value, 1),
+            hot == 0 ? "Within range" : "Above limit",
+            humidity is null ? null : Math.Round(humidity.Value, 0),
+            humid == 0 ? "Within range" : "Above limit");
     }
 
     public async Task<SyncStatusDto> SyncAsync(IQueryable<Trip> trips, CancellationToken ct)

@@ -14,6 +14,9 @@ using WonderFleet.Infrastructure;
 using WonderFleet.Infrastructure.Persistence;
 using WonderFleet.Infrastructure.Realtime;
 
+// Must run before CreateBuilder: configuration reads environment variables at build time.
+var dotEnvPath = DotEnv.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -25,7 +28,7 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear(); // .NET 10 name; KnownNetworks is obsolete
     options.KnownProxies.Clear();
 });
 
@@ -47,6 +50,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 {
     options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     options.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    // The frontend sends and expects enum NAMES ("AvailableNow", "LogisticsPartner", "Diesel").
+    // Without this, System.Text.Json only accepts numbers and every form carrying an enum returns 400.
+    // Numbers are still accepted, so nothing that already works breaks.
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
 var appOptions = builder.Configuration.GetSection(AppOptions.Section).Get<AppOptions>() ?? new AppOptions();
@@ -103,7 +110,20 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-await app.Services.InitialiseDatabaseAsync();
+app.Logger.LogInformation("Environment: {Environment}. Configuration file: {DotEnv}",
+    app.Environment.EnvironmentName, dotEnvPath ?? "(no .env found; using appsettings only)");
+
+try
+{
+    await app.Services.InitialiseDatabaseAsync();
+}
+catch (Exception ex) when (DatabaseStartupErrors.Explain(ex, app.Services) is { } explanation)
+{
+    // The common local-setup failures get a plain-language explanation instead of a stack trace.
+    app.Logger.LogCritical("Cannot start: {Explanation}", explanation);
+    Environment.ExitCode = 1;
+    return;
+}
 
 app.UseForwardedHeaders();
 app.UseExceptionHandler();

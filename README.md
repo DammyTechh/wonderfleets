@@ -112,9 +112,28 @@ You need: **Docker Desktop**, the **.NET 10 SDK**, and **Node 20+**.
 cp deploy/.env.example .env
 ```
 
-That file already contains working local defaults. You can start with it unchanged;
-every external service is optional (see *What works without API keys* below). The only
-thing worth filling in straight away is the Firebase block, covered further down.
+One file configures everything: `docker compose` reads it, and so does the API when you
+`dotnet run` (it looks for `.env` in the repository root on startup). It already contains
+working local defaults, so you can start with it unchanged — every external service is
+optional (see *What works without API keys* below).
+
+Values already set in your real environment always win over `.env`, and blank lines like
+`Google__ApiKey=` mean "not set". Without any `.env` the API still starts in Development
+using `appsettings.Development.json`.
+
+**Signing keys (optional locally, required in production).** With the four keys under
+`# ---- secrets` blank, Development generates temporary ones on each start — which means
+restarting the API signs you out. To stay signed in across restarts, generate four keys
+and paste one into each:
+
+```powershell
+# Windows PowerShell — run four times
+[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+```bash
+# macOS / Linux
+openssl rand -base64 48
+```
 
 ### Step 2 — database
 
@@ -125,7 +144,12 @@ docker compose -f deploy/docker-compose.yml up -d db
 Postgres is published on **host port 5433**, not 5432. This is deliberate: 5432 is the
 default, so whatever else you run in Docker has usually claimed it already. If 5433 is
 also taken, change `DB_PORT` in `.env` and the matching `Port=` in
-`ConnectionStrings__Default` — the two must agree.
+`ConnectionStrings__Default` — the two must agree — and add `--env-file .env` to the
+compose command. Compose otherwise looks for `.env` beside the compose file in `deploy/`,
+not in the repository root, and would silently keep using 5433.
+
+The compose project is explicitly named `wonderfleet`, so the container is
+`wonderfleet-db-1` and its data lives in its own volume that no other project can share.
 
 Check it came up:
 
@@ -133,17 +157,32 @@ Check it came up:
 docker compose -f deploy/docker-compose.yml ps
 ```
 
-You want `deploy-db-1` showing `healthy`.
+You want `wonderfleet-db-1` showing `healthy`.
 
 ### Step 3 — backend
 
 ```bash
+dotnet build backend/WonderFleet.sln
 dotnet run --project backend/src/WonderFleet.Api
 ```
 
-On first start it applies the SQL migrations and seeds the administrator, then serves on
-`http://localhost:8080`. **There is no separate migration command to run** — see
-*Migrations* below.
+Build the whole solution first: it compiles the API **and** the tests, so you find out
+about any problem in one pass instead of one project at a time.
+
+On start the API prints which configuration it used — look for
+`Environment: Development. Configuration file: …\.env`. It then applies the SQL migrations,
+seeds the administrator, and listens on `http://localhost:8080`. **There is no separate
+migration command to run** — see *Migrations* below.
+
+A healthy first start ends with lines like:
+
+```
+Seeded administrator ADM-001 (ofeminiagrictech@gmail.com)
+Now listening on: http://localhost:8080
+```
+
+A yellow `Telemetry polling is OFF` warning is expected until you add a Firebase
+credential; everything else works without it.
 
 ### Step 4 — frontend
 
@@ -159,10 +198,14 @@ npm --prefix frontend run dev
 | Admin app | `http://localhost:5173` |
 | API | `http://localhost:8080` |
 | Swagger UI | `http://localhost:8080/docs` |
-| Health check | `http://localhost:8080/health` |
+| Health check | `http://localhost:8080/health/ready` (checks the database too) |
 
 Sign in with `Seed__AdminEmail` / `Seed__AdminPassword` from `.env`. The account is created
 with **must-change-password** set, so change it right after the first sign-in.
+
+**Logs.** Development shows one line per request plus warnings and WonderFleet's own
+messages. To see every SQL statement while debugging, add to `.env` and restart:
+`Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore=Information`.
 
 ### Or: the whole stack in Docker
 
@@ -175,8 +218,9 @@ connection string in `.env`, so the host port never matters here.
 
 ### What works without API keys
 
-The app runs with every third-party key blank. Email and SMS are written to the log
-instead of being sent, weather falls back to keyless Open-Meteo, and Route AI falls back
+The app runs with every third-party key blank. Email and SMS are written to the API's
+console instead of being sent — even if `Email__Provider` names a provider, it is only used
+once its key is filled in — weather falls back to keyless Open-Meteo, and Route AI falls back
 to a transparent heuristic that reports itself as `wonderfleet-heuristic-v1`. Fill the
 keys in when you have them; nothing needs to change in code.
 
@@ -286,6 +330,49 @@ Concretely, the API reads
 every `Telemetry__PollIntervalSeconds`, and writes limits to
 `…/settings/TRK-0001.json` whenever you change them for a trip.
 
+### Getting a unit's data on screen
+
+Three things must all be true before a node in Firebase shows up in the app. If data is
+missing, check them in this order — the dashboard shows a notice for the first two.
+
+1. **Polling is running.** Needs a credential (above). If it is off, the dashboard says
+   exactly which setting is missing.
+2. **The node is registered as a device.** WonderFleet never adds a Firebase node on its
+   own, so the engineer's `test` node or a stray write can never become a truck. Nodes that
+   are transmitting but unregistered appear on the dashboard and in *Add a Fleet → Monitoring
+   device* with a **Register** button.
+3. **The node holds real readings.** The firmware writes `-1` for a sensor that returned
+   nothing and `0, 0` for no GPS fix. WonderFleet treats those as *no reading* rather than
+   showing `-1.0 °C` or a truck in the Gulf of Guinea. A unit whose last write is older than
+   the offline window (10 minutes by default) is shown as offline even if it says
+   `isActive: true`, because nothing has updated it since.
+
+A registered unit's readings appear on its chip in *Add a Fleet* straight away, and on the
+dashboard and live map once it is assigned to a trip.
+
+### How live updates reach the screen
+
+Nothing on screen is hardcoded or sample data; every figure is computed from the database
+when it is requested. Updates flow like this:
+
+1. The firmware writes to Firebase.
+2. The API reads Firebase every `Telemetry__PollIntervalSeconds` (default 10, minimum 5)
+   and stores any change.
+3. The moment a reading or alert is stored, the API pushes a message over SignalR
+   (`/hubs/fleet`).
+4. The admin app holds one live connection (`frontend/src/lib/live.ts`). Each message
+   refreshes only what it affects — dashboard, live map, fleet list, the open trip, alerts,
+   the bell — within about a second, without a reload. Bursts of readings are batched into
+   one refresh per second.
+
+So a reading appears **within roughly the poll interval plus a second**. The **Live** dot
+beside the bell shows the connection state; if it drops, the app reconnects on its own and
+catches up, and every screen still refreshes each minute in the meantime. Partner tracking
+links get the same live connection, limited to the trips on their link.
+
+For updates faster than the poll interval, use the webhook below so the firmware pushes
+straight to the API.
+
 ### Optional: push instead of poll
 
 If you would rather the hardware post directly to the API than have the API poll Firebase,
@@ -300,17 +387,21 @@ de-duplicated.
 
 | What you see | What it means | Fix |
 |---|---|---|
-| `Bind for 0.0.0.0:5432 failed: port is already allocated` | Another container already owns 5432 | Already handled — the compose file uses 5433. If you still hit it, change `DB_PORT` in `.env` |
+| `password authentication failed for user "postgres"` | An older volume, or a different Postgres, is answering on the port — Postgres keeps the password its volume was created with | The API now prints the exact fix. In short: `docker compose -f deploy/docker-compose.yml down -v`, then `up -d db` (deletes local data only) |
+| `No database connection string` | The API found neither `.env` nor Development settings | Run from the repository root, and check `.env` exists there (`cp deploy/.env.example .env`) |
+| API starts on port 5000 instead of 8080 | Started some way other than `dotnet run --project …` | Use the command above; it reads `Properties/launchSettings.json`, which sets 8080 |
+| Signed out every time the API restarts | The four signing keys are blank, so temporary ones are generated | Generate keys as shown in Step 1 |
+| `Bind for 0.0.0.0:5433 failed: port is already allocated` | Something already owns 5433 — often an older `deploy-db-1` container | `docker rm -f deploy-db-1`, or pick another `DB_PORT` and use `--env-file .env` |
 | `open …\backend\deploy\docker-compose.yml: The system cannot find the path` | You ran compose from `backend/` | Run it from the repository root |
-| `NU1902: Warning As Error … known vulnerability` | A new advisory was published against a dependency | Handled: audit findings are warnings, not errors. Run `dotnet restore` |
-| `error CS…` from `dotnet run` | A real compile error | `dotnet build` shows **all** of them at once; `dotnet run` stops at the first project that fails |
+| `NU1902` / `CS0618` / `EF1002` / `CA…` as **warnings** | Advisories, obsolete-API notices and analyzer suggestions | These no longer stop the build locally. Fix them when convenient; `dotnet build -p:WonderFleetStrict=true` shows them as errors |
+| `error CS…` | A genuine compile error | Paste the full `dotnet build` output. Each project compiles only after the ones it depends on succeed, so a failure in one project hides errors in the projects above it |
 | API starts then exits with `Migrations folder not found` | Running from an unexpected working directory | Use `dotnet run --project backend/src/WonderFleet.Api` from the root |
 | `Firebase credentials are missing` | No service account, secret, or `AllowUnauthenticated` | Set one of the three above |
 | Dashboard shows devices offline | Polling is off, or the key does not match | Check `Telemetry__PollingEnabled=true` and that the device's Firebase key equals the node name in `vehicles/` |
 
 **Other containers on your machine are irrelevant.** If `docker ps` shows Supabase or
 Navtrack containers, those belong to your other projects. WonderFleet does not use
-Supabase; it only needs `deploy-db-1`. The only way they interfere is by holding a port,
+Supabase; it only needs `wonderfleet-db-1`. The only way they interfere is by holding a port,
 which is what 5433 avoids.
 
 ---

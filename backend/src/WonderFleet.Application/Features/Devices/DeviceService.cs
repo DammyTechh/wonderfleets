@@ -32,6 +32,11 @@ public sealed record DeviceDto(
 
 public sealed record UnknownDeviceKeyDto(string FirebaseKey, DateTimeOffset LastSeenAt);
 
+/// Everything needed to explain why device data is or is not arriving.
+public sealed record FirebaseStatusDto(
+    bool PollingActive, string? DisabledReason, DateTimeOffset? LastPollAt, DateTimeOffset? LastSuccessfulPollAt,
+    string? LastError, int NodesInLastPoll, IReadOnlyList<UnknownDeviceKeyDto> UnregisteredKeys);
+
 public sealed class RegisterDeviceRequestValidator : AbstractValidator<RegisterDeviceRequest>
 {
     public RegisterDeviceRequestValidator()
@@ -76,6 +81,7 @@ public interface IDeviceService
     Task<DeviceDto> UpdateAsync(Guid id, UpdateDeviceRequest request, CancellationToken ct);
     Task DeleteAsync(Guid id, CancellationToken ct);
     IReadOnlyList<UnknownDeviceKeyDto> GetUnknownKeys();
+    FirebaseStatusDto GetFirebaseStatus();
     Task SyncThresholdsAsync(Guid id, CancellationToken ct);
 }
 
@@ -152,6 +158,10 @@ internal sealed class DeviceService(
     public IReadOnlyList<UnknownDeviceKeyDto> GetUnknownKeys() =>
         sync.UnknownDeviceKeys.Where(k => !DeviceKeys.Reserved.Contains(k.Key))
             .OrderByDescending(k => k.Value).Select(k => new UnknownDeviceKeyDto(k.Key, k.Value)).ToList();
+
+    public FirebaseStatusDto GetFirebaseStatus() => new(
+        sync.PollingStarted, sync.DisabledReason, sync.LastPollAt, sync.LastSuccessfulPollAt,
+        sync.LastError, sync.LastPollNodeCount, GetUnknownKeys());
 
     public async Task SyncThresholdsAsync(Guid id, CancellationToken ct)
     {

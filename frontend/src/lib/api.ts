@@ -17,6 +17,7 @@ export const tokens = {
     if (token) sessionStorage.setItem('wf_portal', token)
     else sessionStorage.removeItem('wf_portal')
   },
+  portal: () => portalToken ?? '',
   restorePortal() {
     portalToken = sessionStorage.getItem('wf_portal')
     return portalToken
@@ -39,9 +40,44 @@ function client(prefix: 'admin' | 'portal'): AxiosInstance {
 export const api = client('admin')
 export const portalApi = client('portal')
 
-// Refresh once per 401, then replay the original request.
+// One refresh in flight at a time, shared by every caller.
 let refreshing: Promise<string | null> | null = null
 
+function refreshAccess(): Promise<string | null> {
+  refreshing ??= axios
+    .post<{ accessToken: string }>(`${baseURL}/api/v1/auth/refresh`, {}, { withCredentials: true })
+    .then((r) => r.data.accessToken)
+    .catch(() => null)
+    .finally(() => {
+      setTimeout(() => (refreshing = null), 0)
+    })
+  return refreshing
+}
+
+/** True when the token is unreadable or expires within a minute. */
+function expiresSoon(token: string): boolean {
+  try {
+    const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(part)) as { exp?: unknown }
+    return typeof payload.exp !== 'number' || payload.exp * 1000 - Date.now() < 60_000
+  } catch {
+    return true
+  }
+}
+
+/**
+ * A token that is valid for at least another minute, refreshing first if needed.
+ * Used by the live connection, which reconnects long after sign-in when tokens
+ * (15 minutes) have usually expired.
+ */
+export async function freshAccessToken(): Promise<string> {
+  if (accessToken && !expiresSoon(accessToken)) return accessToken
+  const token = await refreshAccess()
+  if (token) tokens.setAccess(token)
+  return token ?? ''
+}
+
+// Refresh once per 401, then replay the original request.
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -50,15 +86,7 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
     original._retried = true
-    refreshing ??= axios
-      .post<{ accessToken: string }>(`${baseURL}/api/v1/auth/refresh`, {}, { withCredentials: true })
-      .then((r) => r.data.accessToken)
-      .catch(() => null)
-      .finally(() => {
-        setTimeout(() => (refreshing = null), 0)
-      })
-
-    const token = await refreshing
+    const token = await refreshAccess()
     if (!token) {
       tokens.setAccess(null)
       onSignedOut?.()

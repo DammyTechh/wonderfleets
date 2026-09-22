@@ -4,19 +4,34 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- NuGet audit (NU1901-NU1904) reports newly published advisories against packages
-         that were clean when pinned. Keep the findings visible as warnings, but do not
-         let a third-party disclosure block the build. Remove this line if CI should
-         hard-fail on any advisory. -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <InvariantGlobalization>false</InvariantGlobalization>
     <Company>Ofemini Global Limited</Company>
     <Product>WonderFleet</Product>
     <Authors>OfeminiAgricTech Engineering</Authors>
     <!-- CA1848/CA1873: LoggerMessage source generators are nice-to-have, not blocking. -->
     <NoWarn>$(NoWarn);CA1848;CA1873;CA1711;CA1716;CA1308;CA2007;CA1062;CA1819;CA1056;CA1054;CA1031;CA1305;CA1307;CA1310;CA1304;CA1311;CA1862;CA1822;CA1002;CA2227;CA1805;CA1812;CA1515;CA1034;CA1024;CA1707</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    Warnings never block a local build. Obsolete-API notices, analyzer suggestions and
+    newly published package advisories all still PRINT, so nothing is hidden, but
+    `dotnet run`, `dotnet test` and the Docker image build go through.
+
+    Strict mode turns every warning into an error. It switches on automatically when
+    the CI environment variable is "true" (GitHub Actions, GitLab and most CI systems
+    set it), or explicitly:
+        dotnet build -p:WonderFleetStrict=true
+    Run that before merging to keep the codebase warning-free.
+  -->
+  <PropertyGroup>
+    <WonderFleetStrict Condition="'$(WonderFleetStrict)' == '' and '$(CI)' == 'true'">true</WonderFleetStrict>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(WonderFleetStrict)' == 'true'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Package advisories are published against versions that were clean when pinned;
+         report them, but let dependency upgrades be their own change. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
   </PropertyGroup>
 </Project>

@@ -25,4 +25,8 @@ public sealed class FirebaseOptions
     public int TimeoutSeconds { get; set; } = 20;
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(DatabaseUrl);
+
+    /// True when a request to the database can actually be authorised.
+    public bool HasCredentials =>
+        !string.IsNullOrWhiteSpace(ServiceAccountJson) || !string.IsNullOrWhiteSpace(DatabaseSecret) || AllowUnauthenticated;
 }

@@ -75,7 +75,7 @@ internal sealed class ReportRenderer : IReportRenderer
                         var index = 0;
                         foreach (var row in table.Rows)
                         {
-                            var background = index++ % 2 == 0 ? Colors.White : "#FAFCFB";
+                            var background = index++ % 2 == 0 ? "#FFFFFF" : "#FAFCFB"; // both strings: Color<->string ternary is ambiguous
                             foreach (var cell in row)
                                 grid.Cell().Background(background).BorderBottom(0.5f).BorderColor(Line)
                                     .PaddingVertical(3).PaddingHorizontal(3).Text(cell).FontSize(7.5f);

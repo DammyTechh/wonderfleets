@@ -8,6 +8,7 @@ namespace WonderFleet.Api.Endpoints;
 internal static class AccountEndpoints
 {
     private const string RefreshCookie = "wf_rt";
+    private const string RefreshCookiePath = $"{EndpointRegistration.BasePath}/auth";
 
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
@@ -35,7 +36,7 @@ internal static class AccountEndpoints
         group.MapPost("/logout", async (RefreshRequest? request, IAuthService auth, HttpContext http, CancellationToken ct) =>
         {
             await auth.LogoutAsync(request?.RefreshToken ?? http.Request.Cookies[RefreshCookie], ct);
-            http.Response.Cookies.Delete(RefreshCookie);
+            http.Response.Cookies.Delete(RefreshCookie, new CookieOptions { Path = RefreshCookiePath });
             return Results.NoContent();
         });
 
@@ -55,7 +56,7 @@ internal static class AccountEndpoints
         group.MapPost("/password", async (ChangePasswordRequest request, IProfileService profile, HttpContext http, CancellationToken ct) =>
             {
                 await profile.ChangePasswordAsync(request, ct);
-                http.Response.Cookies.Delete(RefreshCookie);
+                http.Response.Cookies.Delete(RefreshCookie, new CookieOptions { Path = RefreshCookiePath });
                 return Results.NoContent();
             })
             .Validate<ChangePasswordRequest>()
@@ -73,13 +74,22 @@ internal static class AccountEndpoints
     }
 
     /// HttpOnly refresh cookie for browsers; the token is also returned for non-browser clients.
-    private static void SetRefreshCookie(HttpContext http, string token, DateTimeOffset expiresAt) =>
+    ///
+    /// Browsers reject SameSite=None unless the cookie is also Secure, and plain-http
+    /// localhost cannot be Secure. Locally the Vite proxy makes the API same-origin, so
+    /// Lax is correct there. Deployed, the frontend and API are separate origins over
+    /// HTTPS, which is what None + Secure is for.
+    private static void SetRefreshCookie(HttpContext http, string token, DateTimeOffset expiresAt)
+    {
+        var host = http.Request.Host.Host;
+        var local = host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || host == "127.0.0.1";
         http.Response.Cookies.Append(RefreshCookie, token, new CookieOptions
         {
             HttpOnly = true,
-            Secure = !http.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
-            SameSite = SameSiteMode.None,
+            Secure = !local,
+            SameSite = local ? SameSiteMode.Lax : SameSiteMode.None,
             Expires = expiresAt,
-            Path = $"{EndpointRegistration.BasePath}/auth",
+            Path = RefreshCookiePath,
         });
+    }
 }

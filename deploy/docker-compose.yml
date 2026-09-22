@@ -1,10 +1,18 @@
 # Local stack: PostgreSQL 16 plus the API.
 #
 # Host ports are deliberately NOT the defaults, because most machines already have
-# something on 5432. Override them in .env if these clash too:
+# something on 5432. To override (only needed if these clash too), set these in the
+# root .env and pass it explicitly: docker compose --env-file .env -f deploy/docker-compose.yml ...
 #   DB_PORT=5433      -> postgres on the host
 #   API_PORT=8080     -> the API on the host
 # Inside the compose network the API always reaches postgres on 5432.
+#
+# The explicit project name matters. Without it Docker names the project after this
+# folder ("deploy"), which collides with any other project kept in a deploy/ folder —
+# and Postgres only applies POSTGRES_PASSWORD when its volume is first created, so a
+# shared or older volume keeps whatever password it started with.
+name: wonderfleet
+
 services:
   db:
     image: postgres:16-alpine

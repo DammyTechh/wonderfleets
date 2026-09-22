@@ -322,8 +322,12 @@ export interface Device {
   batteryLevel?: number | null
   isOnline: boolean
   lastSeenAt?: string | null
+  /** When the firmware last wrote something new (not just when the API last looked). */
+  lastChangedAt?: string | null
   lastTemperature?: number | null
   lastHumidity?: number | null
+  lastLatitude?: number | null
+  lastLongitude?: number | null
   currentTripCode?: string | null
   currentRoute?: string | null
   sensorStatus: SensorStatus
@@ -652,4 +656,21 @@ export interface PortalSession {
   organisationName: string
   linkExpiresAt: string
   tripCount: number
+}
+
+/** A Firebase node that is transmitting but not registered as a device yet. */
+export interface UnknownDeviceKey {
+  firebaseKey: string
+  lastSeenAt: string
+}
+
+/** Why device data is, or is not, arriving from Firebase. */
+export interface FirebaseStatus {
+  pollingActive: boolean
+  disabledReason?: string | null
+  lastPollAt?: string | null
+  lastSuccessfulPollAt?: string | null
+  lastError?: string | null
+  nodesInLastPoll: number
+  unregisteredKeys: UnknownDeviceKey[]
 }

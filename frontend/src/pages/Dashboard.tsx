@@ -1,34 +1,18 @@
 import {
   Activity, Bot, CircleAlert, Droplets, Leaf, Radio, Thermometer, Truck,
 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { FirebaseDevicesPanel } from '@/components/FirebaseDevicesPanel'
 import { FleetMap } from '@/components/FleetMap'
 import { Card, CardHeader, EmptyState, ErrorNote, Loading, PageHeader, StatCard, StatusChip } from '@/components/ui'
 import { errorMessage } from '@/lib/api'
 import { humidity as humidityText, since, signed, temperature as temperatureText } from '@/lib/format'
-import { tokens } from '@/lib/api'
-import { keys, useDashboard } from '@/lib/queries'
-import { connectHub } from '@/lib/realtime'
+import { useDashboard } from '@/lib/queries'
 
 export default function Dashboard() {
   const { data, isLoading, error, refetch } = useDashboard()
-  const queryClient = useQueryClient()
 
-  // Live telemetry and alerts refresh the dashboard between polls.
-  useEffect(
-    () =>
-      connectHub(tokens.access, {
-        onTelemetry: () => queryClient.invalidateQueries({ queryKey: keys.dashboard }),
-        onAlert: () => {
-          void queryClient.invalidateQueries({ queryKey: keys.dashboard })
-          void queryClient.invalidateQueries({ queryKey: ['alerts'] })
-        },
-        onNotification: () => queryClient.invalidateQueries({ queryKey: keys.unread }),
-      }),
-    [queryClient],
-  )
+  // Live updates come from the shell's single connection (lib/live.ts); no second socket here.
 
   if (isLoading) return <Loading rows={6} />
   if (error || !data) return <ErrorNote message={errorMessage(error)} onRetry={() => refetch()} />
@@ -47,6 +31,11 @@ export default function Dashboard() {
           </Link>
         }
       />
+
+      {/* Renders only when something needs attention: polling off, reads failing, or unregistered units. */}
+      <div className="mb-5 empty:hidden">
+        <FirebaseDevicesPanel compact />
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard

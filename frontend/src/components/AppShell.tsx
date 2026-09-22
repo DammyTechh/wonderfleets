@@ -6,6 +6,7 @@ import {
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth'
+import { useLiveUpdates } from '@/lib/live'
 import { useUnreadCount } from '@/lib/queries'
 import { Avatar } from './ui'
 
@@ -46,6 +47,8 @@ export function AppShell() {
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const unread = useUnreadCount()
+  // One live connection for every admin screen; see lib/live.ts.
+  const live = useLiveUpdates()
 
   const inPartners = location.pathname.startsWith('/partners') || location.pathname.startsWith('/processors')
   const [partnersOpen, setPartnersOpen] = useState(inPartners)
@@ -157,6 +160,20 @@ export function AppShell() {
             <Menu size={20} />
           </button>
           <div className="ml-auto flex items-center gap-3">
+            <span
+              className="hidden items-center gap-1.5 text-xs font-medium text-ink-soft sm:flex"
+              title={
+                live === 'live'
+                  ? 'Receiving readings and alerts as they happen'
+                  : 'Live connection interrupted; screens still refresh every minute and will catch up on reconnect'
+              }
+            >
+              <span className="relative flex h-2 w-2">
+                {live === 'live' && <span className="absolute inset-0 animate-ring rounded-full bg-live" />}
+                <span className={clsx('relative h-2 w-2 rounded-full', live === 'live' ? 'bg-live' : 'bg-warning-500')} />
+              </span>
+              {live === 'live' ? 'Live' : live === 'connecting' ? 'Connecting…' : 'Reconnecting…'}
+            </span>
             <NavLink
               to="/notifications"
               className="relative grid h-9 w-9 place-items-center rounded-lg border border-line bg-surface text-ink-soft hover:text-ink"

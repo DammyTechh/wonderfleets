@@ -34,6 +34,13 @@ public sealed class TelemetrySyncState
 
     public IReadOnlyDictionary<string, DateTimeOffset> UnknownDeviceKeys => _unknownKeys;
 
+    /// Why the poller is not running, or null when it is. Lets the UI say "polling is off"
+    /// instead of showing an empty screen that looks like no data.
+    public string? DisabledReason { get; private set; }
+    public bool PollingStarted { get; private set; }
+    public void PollingDisabled(string reason) { DisabledReason = reason; PollingStarted = false; }
+    public void PollingRunning() { DisabledReason = null; PollingStarted = true; }
+
     public void PollSucceeded(DateTimeOffset at, int nodes) { LastPollAt = at; LastSuccessfulPollAt = at; LastPollNodeCount = nodes; LastError = null; }
     public void PollFailed(DateTimeOffset at, string error) { LastPollAt = at; LastError = error; }
     public void ReadingStored(DateTimeOffset at) => LastReadingStoredAt = at;
@@ -60,6 +67,9 @@ internal sealed class TelemetryIngestionService(
     IOptions<TelemetryOptions> options,
     ILogger<TelemetryIngestionService> logger) : ITelemetryIngestionService
 {
+    /// Value the firmware writes for a sensor that returned nothing.
+    internal const decimal FirmwareNoReading = -1m;
+
     internal static readonly TripStatus[] OpenTripStatuses =
         [TripStatus.Scheduled, TripStatus.InTransit, TripStatus.Delayed, TripStatus.Stopped];
 
@@ -89,8 +99,28 @@ internal sealed class TelemetryIngestionService(
             return IngestionOutcome.Unchanged;
         }
 
-        var temperature = Sane(snapshot.Temperature, -40, 85, "temperature", device.Serial);
-        var humidity = Sane(snapshot.Humidity, 0, 100, "humidity", device.Serial);
+        // Firmware writes -1 when a sensor read returns nothing (a DHT read that came back NaN,
+        // an unplugged probe). Humidity can never be negative, so -1 there is unambiguous; a
+        // temperature of exactly -1 alongside it is the same placeholder, not a reading.
+        // A genuine -1 °C with valid humidity is still kept.
+        var rawTemperature = snapshot.Temperature;
+        var rawHumidity = snapshot.Humidity;
+        if (rawHumidity == FirmwareNoReading)
+        {
+            rawHumidity = null;
+            if (rawTemperature == FirmwareNoReading) rawTemperature = null;
+        }
+        var temperature = Sane(rawTemperature, -40, 85, "temperature", device.Serial);
+        var humidity = Sane(rawHumidity, 0, 100, "humidity", device.Serial);
+
+        // First time this API sees the unit, and the firmware's own timestamp says it stopped
+        // writing longer ago than the offline window: the node is quiet, not online, whatever
+        // isActive says. Only on first sight — afterwards a changing payload decides, which
+        // does not depend on the unit's clock being right.
+        var offlineAfter = TimeSpan.FromMinutes((await alerts.GetConfigAsync(ct)).Minutes(AlertType.DeviceOffline, 10));
+        DateTimeOffset? quietSince = device.LastChangedAt is null
+            && snapshot.DeviceTimestamp is { } written && now - written > offlineAfter ? written : null;
+        var active = snapshot.IsActive && quietSince is null;
         var hasFix = GeoMath.IsValidFix(snapshot.Latitude, snapshot.Longitude);
         var lat = hasFix ? snapshot.Latitude : null;
         var lng = hasFix ? snapshot.Longitude : null;
@@ -102,8 +132,8 @@ internal sealed class TelemetryIngestionService(
         if (!unchanged)
         {
             // Only a real write proves the unit is alive; heartbeats never flip online state (prevents alert flapping).
-            device.LastChangedAt = now;
-            device.IsOnline = snapshot.IsActive;
+            device.LastChangedAt = quietSince ?? now;
+            device.IsOnline = active;
         }
         device.LastTemperature = temperature ?? device.LastTemperature;
         device.LastHumidity = humidity ?? device.LastHumidity;
@@ -135,14 +165,14 @@ internal sealed class TelemetryIngestionService(
             Longitude = lng,
             SpeedKmh = trip?.LastSpeedKmh,
             BatteryLevel = device.BatteryLevel,
-            IsActive = snapshot.IsActive,
+            IsActive = active,
             Source = source,
             RecordedAt = recordedAt,
             ReceivedAt = now,
         };
         db.SensorReadings.Add(reading);
 
-        if (!snapshot.IsActive)
+        if (!active)
         {
             if (trip is not null && !unchanged)
             {
@@ -170,7 +200,7 @@ internal sealed class TelemetryIngestionService(
         await realtime.PublishTelemetryAsync(new TelemetryEvent(
             trip?.Id, device.Id, trip?.Vehicle?.FleetNumber, lat ?? device.LastLatitude, lng ?? device.LastLongitude,
             trip?.LastSpeedKmh, temperature, humidity,
-            (trip?.SensorStatus ?? (snapshot.IsActive ? SensorStatus.Normal : SensorStatus.Offline)).ToString(),
+            (trip?.SensorStatus ?? (active ? SensorStatus.Normal : SensorStatus.Offline)).ToString(),
             trip?.Status.ToString(), recordedAt), ct);
         foreach (var evt in alerts.DrainEvents()) await realtime.PublishAlertAsync(evt, ct);
 

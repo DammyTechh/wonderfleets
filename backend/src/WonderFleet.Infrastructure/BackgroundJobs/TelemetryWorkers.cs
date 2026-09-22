@@ -22,12 +22,20 @@ internal sealed class TelemetryPollingWorker(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var options = telemetryOptions.Value;
-        if (!options.PollingEnabled || !firebaseOptions.Value.IsConfigured)
+        var reason =
+            !options.PollingEnabled ? "Telemetry__PollingEnabled is false."
+            : !firebaseOptions.Value.IsConfigured ? "Firebase__DatabaseUrl is not set."
+            : !firebaseOptions.Value.HasCredentials
+                ? "Firebase has no credential. Set Firebase__ServiceAccountJson, or Firebase__AllowUnauthenticated=true if the database rules are still in test mode."
+            : null;
+        if (reason is not null)
         {
-            logger.LogInformation("Telemetry polling is disabled (PollingEnabled={Enabled}, Firebase configured={Configured})",
-                options.PollingEnabled, firebaseOptions.Value.IsConfigured);
+            // One clear line instead of a stack trace every poll interval; the UI shows the same reason.
+            syncState.PollingDisabled(reason);
+            logger.LogWarning("Telemetry polling is OFF: {Reason} The rest of the app runs normally.", reason);
             return;
         }
+        syncState.PollingRunning();
 
         var interval = TimeSpan.FromSeconds(Math.Clamp(options.PollIntervalSeconds, 5, 600));
         using var timer = new PeriodicTimer(interval);

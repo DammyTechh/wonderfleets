@@ -24,8 +24,9 @@ internal sealed class CodeGenerator(ApplicationDbContext db) : ICodeGenerator
 
     private async Task<long> NextAsync(string sequence, CancellationToken ct)
     {
-        // Sequence names come from the constants above only (never user input).
-        var value = await db.Database.SqlQueryRaw<long>($"SELECT nextval('{sequence}') AS \"Value\"").ToListAsync(ct);
+        // SqlQuery (not SqlQueryRaw) turns the interpolation into a real bind parameter;
+        // nextval takes regclass, and a text parameter casts to it cleanly.
+        var value = await db.Database.SqlQuery<long>($"SELECT nextval({sequence}::regclass) AS \"Value\"").ToListAsync(ct);
         return value[0];
     }
 }

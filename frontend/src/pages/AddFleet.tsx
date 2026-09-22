@@ -5,9 +5,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Avatar, Card, ErrorNote, Field, PageHeader, Spinner, StatusChip } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
-import { dt, tonnes } from '@/lib/format'
+import { dt, humidity as humidityText, since, temperature as temperatureText, tonnes } from '@/lib/format'
 import { useDevices, useDrivers, usePartners, useProcessors, useProduceTypes } from '@/lib/queries'
 import { FuelBreakdown } from '@/components/FuelCard'
+import { FirebaseDevicesPanel } from '@/components/FirebaseDevicesPanel'
 import type { FuelEstimate, FuelType, Thresholds } from '@/lib/types'
 
 const TABS = ['Vehicle details', 'Shipment info', 'Sensor & docs', 'Review & submit'] as const
@@ -463,6 +464,9 @@ export default function AddFleet() {
 
               <div>
                 <span className="label">Monitoring device</span>
+                <div className="mb-3">
+                  <FirebaseDevicesPanel />
+                </div>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {devices.data?.items.map((device) => (
                     <button
@@ -483,10 +487,22 @@ export default function AddFleet() {
                         Key {device.firebaseKey}
                         {device.batteryLevel != null && ` · battery ${device.batteryLevel}%`}
                       </span>
+                      {/* What the unit is actually reporting, so a silent sensor is obvious before dispatch. */}
+                      <span className="mt-1 block text-xs text-ink-soft">
+                        {device.lastTemperature == null && device.lastHumidity == null
+                          ? 'No sensor reading yet'
+                          : `${temperatureText(device.lastTemperature)} · ${humidityText(device.lastHumidity)}`}
+                        {device.lastLatitude == null && ' · no GPS fix'}
+                      </span>
+                      {device.lastChangedAt && (
+                        <span className="block text-xs text-ink-faint">Last wrote {since(device.lastChangedAt)}</span>
+                      )}
                     </button>
                   ))}
                   {devices.data?.items.length === 0 && (
-                    <p className="text-sm text-ink-faint">Every master unit is currently on a shipment.</p>
+                    <p className="text-sm text-ink-faint sm:col-span-3">
+                      No free devices. Register a transmitting unit above, or complete a shipment to free one.
+                    </p>
                   )}
                 </div>
               </div>
