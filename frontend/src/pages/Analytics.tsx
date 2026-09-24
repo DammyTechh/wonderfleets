@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import { Card, CardHeader, ErrorNote, Loading, PageHeader, StatCard, StatStrip, StatusChip } from '@/components/ui'
 import { download, errorMessage } from '@/lib/api'
-import { percent, signed, since } from '@/lib/format'
+import { humidity as humidityText, percent, signed, since, temperature as temperatureText } from '@/lib/format'
 import { useAnalytics, useReportCatalog } from '@/lib/queries'
 import { chart } from '@/lib/chart'
 
@@ -159,7 +159,12 @@ export default function Analytics() {
                   <span className="block tabular text-sm font-medium">{device.serial}</span>
                   <span className="block truncate text-xs text-ink-faint">{device.route ?? 'Idle'} · {since(device.lastSeenAt)}</span>
                 </span>
-                {device.batteryLevel != null && <span className="tabular text-xs text-ink-soft">{device.batteryLevel}%</span>}
+                {/* What the unit is reporting, not just whether it is alive. */}
+                <span className="tabular whitespace-nowrap text-right text-sm">
+                  <span className="font-medium">{temperatureText(device.temperature)}</span>
+                  <span className="ml-2 text-ink-soft">{humidityText(device.humidity)}</span>
+                  {device.batteryLevel != null && <span className="block text-xs text-ink-faint">battery {device.batteryLevel}%</span>}
+                </span>
                 <StatusChip status={device.sensorStatus} />
               </li>
             ))}

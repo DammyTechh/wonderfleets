@@ -317,6 +317,9 @@ export interface Device {
   serial: string
   firebaseKey: string
   kind: 'Master' | 'SubUnit'
+  parentDeviceId?: string | null
+  firmwareVersion?: string | null
+  currentTripId?: string | null
   vehicleId?: string | null
   fleetNumber?: string | null
   batteryLevel?: number | null
@@ -329,6 +332,13 @@ export interface Device {
   lastLatitude?: number | null
   lastLongitude?: number | null
   currentTripCode?: string | null
+  /** The unit's own limits, used when it is not on a trip. */
+  minTemperature?: number | null
+  maxTemperature?: number | null
+  minHumidity?: number | null
+  maxHumidity?: number | null
+  /** "Trip" while a shipment owns the limits, otherwise "Device". */
+  thresholdSource?: 'Trip' | 'Device'
   currentRoute?: string | null
   sensorStatus: SensorStatus
 }

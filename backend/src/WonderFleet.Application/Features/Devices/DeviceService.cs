@@ -15,7 +15,9 @@ namespace WonderFleet.Application.Features.Devices;
 public sealed record RegisterDeviceRequest(
     string Serial, string FirebaseKey, DeviceKind Kind, Guid? ParentDeviceId, Guid? VehicleId, string? FirmwareVersion);
 
-public sealed record UpdateDeviceRequest(DeviceKind Kind, Guid? ParentDeviceId, Guid? VehicleId, string? FirmwareVersion);
+public sealed record UpdateDeviceRequest(
+    DeviceKind Kind, Guid? ParentDeviceId, Guid? VehicleId, string? FirmwareVersion,
+    decimal? MinTemperature = null, decimal? MaxTemperature = null, decimal? MinHumidity = null, decimal? MaxHumidity = null);
 
 public sealed record DeviceListQuery : PageQuery
 {
@@ -28,7 +30,10 @@ public sealed record DeviceDto(
     Guid Id, string Serial, string FirebaseKey, string Kind, Guid? ParentDeviceId, string? ParentSerial,
     Guid? VehicleId, string? VehicleCode, string? FleetNumber, string? FirmwareVersion, int? BatteryLevel,
     bool IsOnline, DateTimeOffset? LastSeenAt, DateTimeOffset? LastChangedAt, decimal? LastTemperature, decimal? LastHumidity,
-    double? LastLatitude, double? LastLongitude, Guid? CurrentTripId, string? CurrentTripCode, string? CurrentRoute, string SensorStatus);
+    double? LastLatitude, double? LastLongitude, Guid? CurrentTripId, string? CurrentTripCode, string? CurrentRoute, string SensorStatus,
+    decimal? MinTemperature, decimal? MaxTemperature, decimal? MinHumidity, decimal? MaxHumidity,
+    /// "Trip" while a shipment is running (its limits win), otherwise "Device".
+    string ThresholdSource);
 
 public sealed record UnknownDeviceKeyDto(string FirebaseKey, DateTimeOffset LastSeenAt);
 
@@ -59,6 +64,17 @@ public sealed class UpdateDeviceRequestValidator : AbstractValidator<UpdateDevic
         RuleFor(x => x.Kind).IsInEnum();
         RuleFor(x => x.ParentDeviceId).NotEmpty().When(x => x.Kind == DeviceKind.SubUnit);
         RuleFor(x => x.FirmwareVersion).MaximumLength(40);
+        // Ranges the hardware can actually report, and the right way round.
+        RuleFor(x => x.MinTemperature).InclusiveBetween(-40, 85).When(x => x.MinTemperature.HasValue);
+        RuleFor(x => x.MaxTemperature).InclusiveBetween(-40, 85).When(x => x.MaxTemperature.HasValue);
+        RuleFor(x => x.MinHumidity).InclusiveBetween(0, 100).When(x => x.MinHumidity.HasValue);
+        RuleFor(x => x.MaxHumidity).InclusiveBetween(0, 100).When(x => x.MaxHumidity.HasValue);
+        RuleFor(x => x.MaxTemperature).GreaterThan(x => x.MinTemperature!.Value)
+            .When(x => x.MinTemperature.HasValue && x.MaxTemperature.HasValue)
+            .WithMessage("The maximum temperature must be above the minimum.");
+        RuleFor(x => x.MaxHumidity).GreaterThan(x => x.MinHumidity!.Value)
+            .When(x => x.MinHumidity.HasValue && x.MaxHumidity.HasValue)
+            .WithMessage("The maximum humidity must be above the minimum.");
     }
 }
 
@@ -138,8 +154,15 @@ internal sealed class DeviceService(
             throw new BusinessRuleException("device.on_trip", "This device is monitoring an active trip; complete the trip before moving it.");
 
         await ApplyAsync(device, request.Kind, request.ParentDeviceId, request.VehicleId, request.FirmwareVersion, ct);
+        device.MinTemperature = request.MinTemperature;
+        device.MaxTemperature = request.MaxTemperature;
+        device.MinHumidity = request.MinHumidity;
+        device.MaxHumidity = request.MaxHumidity;
         audit.Record("device.updated", nameof(Device), id);
         await db.SaveChangesAsync(ct);
+
+        // Send the unit its own limits straight away, unless a trip is running and owns them.
+        if (openTrip is null) await PushDeviceThresholdsAsync(device, ct);
         return await GetAsync(id, ct);
     }
 
@@ -167,18 +190,21 @@ internal sealed class DeviceService(
     {
         var device = await db.Devices.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id, ct) ?? throw new NotFoundException("Device", id);
         var trip = await db.Trips.AsNoTracking()
-            .FirstOrDefaultAsync(t => t.DeviceId == id && TelemetryIngestionService.OpenTripStatuses.Contains(t.Status), ct)
-            ?? throw new BusinessRuleException("device.no_trip", "This device is not assigned to an active trip.");
+            .FirstOrDefaultAsync(t => t.DeviceId == id && TelemetryIngestionService.OpenTripStatuses.Contains(t.Status), ct);
+        // On a trip the shipment's limits win; otherwise send the unit's own.
+        var thresholds = trip?.Thresholds ?? DeviceThresholds(device)
+            ?? throw new BusinessRuleException("device.no_thresholds",
+                "This device has no limits set and is not on a trip. Set its limits first.");
         try
         {
-            await cloud.PushThresholdsAsync(device.FirebaseKey, trip.Thresholds, ct);
+            await cloud.PushThresholdsAsync(device.FirebaseKey, thresholds, ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogWarning(ex, "Threshold push failed for device {Serial}", device.Serial);
             throw new ExternalServiceException("Firebase", "Could not update the device limits. Try again shortly.");
         }
-        audit.Record("device.thresholds_pushed", nameof(Device), id, new { trip.TripCode });
+        audit.Record("device.thresholds_pushed", nameof(Device), id, new { trip?.TripCode, source = trip is null ? "device" : "trip" });
         await db.SaveChangesAsync(ct);
     }
 
@@ -204,6 +230,27 @@ internal sealed class DeviceService(
         device.FirmwareVersion = Text.Trimmed(firmware);
     }
 
+    /// A complete set of limits, or null when the unit has not been given all four.
+    private static CargoThresholds? DeviceThresholds(Device device) =>
+        device.MinTemperature is { } minT && device.MaxTemperature is { } maxT
+        && device.MinHumidity is { } minH && device.MaxHumidity is { } maxH
+            ? new CargoThresholds(minT, maxT, minH, maxH)
+            : null;
+
+    /// Best effort: saving limits must not fail because the unit is unreachable.
+    private async Task PushDeviceThresholdsAsync(Device device, CancellationToken ct)
+    {
+        if (DeviceThresholds(device) is not { } thresholds) return;
+        try
+        {
+            await cloud.PushThresholdsAsync(device.FirebaseKey, thresholds, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not send limits to {Serial}; they are saved and will go out on the next sync", device.Serial);
+        }
+    }
+
     private IQueryable<DeviceDto> Project(IQueryable<Device> q) => q.Select(d => new
     {
         d,
@@ -218,5 +265,13 @@ internal sealed class DeviceService(
         x.d.LastTemperature, x.d.LastHumidity, x.d.LastLatitude, x.d.LastLongitude,
         x.Trip != null ? (Guid?)x.Trip.Id : null, x.Trip != null ? x.Trip.TripCode : null,
         x.Trip != null ? x.Trip.OriginLabel + " → " + x.Trip.DestinationLabel : null,
-        x.Trip != null ? x.Trip.SensorStatus.ToString() : (x.d.IsOnline ? "Normal" : "Offline")));
+        // Off a trip, judge the last reading against the unit's own limits.
+        x.Trip != null ? x.Trip.SensorStatus.ToString()
+            : !x.d.IsOnline ? "Offline"
+            : (x.d.MaxTemperature != null && x.d.LastTemperature > x.d.MaxTemperature)
+              || (x.d.MinTemperature != null && x.d.LastTemperature < x.d.MinTemperature)
+              || (x.d.MaxHumidity != null && x.d.LastHumidity > x.d.MaxHumidity)
+              || (x.d.MinHumidity != null && x.d.LastHumidity < x.d.MinHumidity) ? "Warning" : "Normal",
+        x.d.MinTemperature, x.d.MaxTemperature, x.d.MinHumidity, x.d.MaxHumidity,
+        x.Trip != null ? "Trip" : "Device"));
 }

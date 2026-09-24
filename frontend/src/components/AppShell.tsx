@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import {
-  Bell, ChartNoAxesColumn, ChevronDown, CircleAlert, Handshake, LayoutDashboard, LogOut,
+  Bell,
+  Cpu, ChartNoAxesColumn, ChevronDown, CircleAlert, Handshake, LayoutDashboard, LogOut,
   MapPinned, Menu, Settings, Sprout, Truck, Users, X,
 } from '@/components/icons'
 import { useEffect, useState } from 'react'
@@ -30,6 +31,7 @@ const partnerNav = [
 ]
 
 const operationsNav = [
+  { to: '/devices', label: 'Devices', icon: Cpu },
   { to: '/analytics', label: 'Analytics', icon: ChartNoAxesColumn },
   { to: '/alerts', label: 'Alerts', icon: CircleAlert },
 ]

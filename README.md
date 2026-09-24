@@ -238,6 +238,7 @@ You do not run a migration command. Start the API and it migrates.
 ```
 backend/db/migrations/V001__initial_schema.sql
 backend/db/migrations/V002__fuel_planning.sql
+backend/db/migrations/V003__device_thresholds.sql
 ```
 
 Applied versions are recorded in the `schema_migrations` table with a checksum; editing a
@@ -347,8 +348,21 @@ missing, check them in this order — the dashboard shows a notice for the first
    the offline window (10 minutes by default) is shown as offline even if it says
    `isActive: true`, because nothing has updated it since.
 
-A registered unit's readings appear on its chip in *Add a Fleet* straight away, and on the
-dashboard and live map once it is assigned to a trip.
+### Where a unit's readings appear
+
+**Devices** (in the sidebar) lists every registered unit with what it is reporting right
+now — temperature, humidity, position, when it last wrote — whether or not it is carrying a
+shipment. It is also where each unit's **limits** are set: the four numbers the firmware
+alarms on. Saving them writes to `settings/<key>` in Firebase immediately, and **Send**
+re-sends them if the unit missed the write.
+
+While a unit is on a trip, that shipment's limits take over and the unit's own are shown
+read-only until the trip finishes. Readings taken off a trip still count towards the
+temperature and humidity charts and the compliance figures on *Analytics*, measured against
+whichever limits applied at the time. A reading with no limits at all is not counted, so the
+compliance percentage always describes readings that had something to be measured against.
+
+Once a unit is assigned to a trip, its readings also appear on the dashboard and the live map.
 
 ### How live updates reach the screen
 

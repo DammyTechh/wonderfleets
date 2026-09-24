@@ -14,10 +14,14 @@ internal sealed class AnalyticsReadStore(NpgsqlDataSource dataSource) : IAnalyti
         SELECT date_trunc(@bucket, r.recorded_at AT TIME ZONE 'Africa/Lagos') AT TIME ZONE 'Africa/Lagos' AS bucket,
                avg(r.temperature)   AS avg_temperature,
                avg(r.humidity)      AS avg_humidity,
-               avg(t.max_temperature) AS avg_max_temperature,
+               avg(coalesce(t.max_temperature, d.max_temperature)) AS avg_max_temperature,
                count(*)::int        AS readings
+        -- LEFT JOIN: a unit reports whether or not it is carrying a shipment, and those
+        -- readings belong on the chart too. Limits come from the trip when there is one,
+        -- otherwise from the unit's own settings.
         FROM sensor_readings r
-        JOIN trips t ON t.id = r.trip_id
+        LEFT JOIN trips t ON t.id = r.trip_id
+        JOIN devices d ON d.id = r.device_id
         WHERE r.recorded_at >= @from AND r.recorded_at < @to
           AND (@device::uuid IS NULL OR r.device_id = @device::uuid)
         GROUP BY 1
@@ -25,20 +29,35 @@ internal sealed class AnalyticsReadStore(NpgsqlDataSource dataSource) : IAnalyti
         """;
 
     internal const string ComplianceSql = """
+        -- Compliance needs something to measure against: a trip's limits while one is running,
+        -- otherwise the unit's own. Readings with neither are not counted at all, so the
+        -- percentage always describes readings that actually had limits.
+        WITH measured AS (
+            SELECT r.temperature, r.humidity,
+                   coalesce(t.min_temperature, d.min_temperature) AS min_t,
+                   coalesce(t.max_temperature, d.max_temperature) AS max_t,
+                   coalesce(t.min_humidity, d.min_humidity)       AS min_h,
+                   coalesce(t.max_humidity, d.max_humidity)       AS max_h
+            FROM sensor_readings r
+            LEFT JOIN trips t ON t.id = r.trip_id
+            JOIN devices d ON d.id = r.device_id
+            WHERE r.recorded_at >= @from AND r.recorded_at < @to
+              AND r.temperature IS NOT NULL AND r.humidity IS NOT NULL
+              AND (@device::uuid IS NULL OR r.device_id = @device::uuid)
+              AND coalesce(t.min_temperature, d.min_temperature) IS NOT NULL
+              AND coalesce(t.max_temperature, d.max_temperature) IS NOT NULL
+              AND coalesce(t.min_humidity, d.min_humidity) IS NOT NULL
+              AND coalesce(t.max_humidity, d.max_humidity) IS NOT NULL
+        )
         SELECT count(*)::int AS total,
-               count(*) FILTER (WHERE r.temperature BETWEEN t.min_temperature AND t.max_temperature)::int AS temp_ok,
-               count(*) FILTER (WHERE r.humidity BETWEEN t.min_humidity AND t.max_humidity)::int AS hum_ok,
-               count(*) FILTER (WHERE (r.temperature NOT BETWEEN t.min_temperature AND t.max_temperature
-                                       OR r.humidity NOT BETWEEN t.min_humidity AND t.max_humidity)
-                                  AND NOT (r.temperature > t.max_temperature + 3 OR r.temperature < t.min_temperature - 3
-                                        OR r.humidity > t.max_humidity + 10 OR r.humidity < t.min_humidity - 10))::int AS warning,
-               count(*) FILTER (WHERE r.temperature > t.max_temperature + 3 OR r.temperature < t.min_temperature - 3
-                                   OR r.humidity > t.max_humidity + 10 OR r.humidity < t.min_humidity - 10)::int AS critical
-        FROM sensor_readings r
-        JOIN trips t ON t.id = r.trip_id
-        WHERE r.recorded_at >= @from AND r.recorded_at < @to
-          AND r.temperature IS NOT NULL AND r.humidity IS NOT NULL
-          AND (@device::uuid IS NULL OR r.device_id = @device::uuid)
+               count(*) FILTER (WHERE temperature BETWEEN min_t AND max_t)::int AS temp_ok,
+               count(*) FILTER (WHERE humidity BETWEEN min_h AND max_h)::int AS hum_ok,
+               count(*) FILTER (WHERE (temperature NOT BETWEEN min_t AND max_t OR humidity NOT BETWEEN min_h AND max_h)
+                                  AND NOT (temperature > max_t + 3 OR temperature < min_t - 3
+                                        OR humidity > max_h + 10 OR humidity < min_h - 10))::int AS warning,
+               count(*) FILTER (WHERE temperature > max_t + 3 OR temperature < min_t - 3
+                                   OR humidity > max_h + 10 OR humidity < min_h - 10)::int AS critical
+        FROM measured
         """;
 
     internal const string TripsByPartnerSql = """

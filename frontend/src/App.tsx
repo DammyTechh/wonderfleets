@@ -11,6 +11,7 @@ import Notifications from './pages/Notifications'
 import PartnerProfile from './pages/PartnerProfile'
 import Partners from './pages/Partners'
 import Processors from './pages/Processors'
+import Devices from './pages/Devices'
 import Settings from './pages/Settings'
 import SignIn from './pages/SignIn'
 import Tracking from './pages/Tracking'
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="analytics" element={<Analytics />} />
         <Route path="alerts" element={<Alerts />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="devices" element={<Devices />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

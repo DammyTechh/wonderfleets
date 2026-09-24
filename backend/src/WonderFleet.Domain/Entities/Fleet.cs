@@ -57,6 +57,13 @@ public class Device : AuditableEntity
     public double? LastLongitude { get; set; }
     /// Fingerprint of the last payload so identical polls are not stored twice.
     public string? LastPayloadHash { get; set; }
+
+    /// Standing limits for this unit, used when it is not on a trip. A trip's own
+    /// limits take over while it is open. These are what gets written to Firebase.
+    public decimal? MinTemperature { get; set; }
+    public decimal? MaxTemperature { get; set; }
+    public decimal? MinHumidity { get; set; }
+    public decimal? MaxHumidity { get; set; }
 }
 
 public class ProduceType : Entity

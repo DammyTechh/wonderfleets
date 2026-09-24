@@ -79,6 +79,16 @@ export const useDevices = (params: Record<string, unknown>) =>
 export const useFirebaseStatus = () =>
   useQuery({ queryKey: keys.firebaseStatus, queryFn: () => get<FirebaseStatus>('/devices/firebase-status'), refetchInterval: 15_000 })
 
+/** Saves a unit's own limits; the API sends them to the hardware straight away. */
+export const updateDevice = (
+  id: string,
+  body: { kind: string; parentDeviceId: string | null; vehicleId: string | null; firmwareVersion: string | null,
+          minTemperature: number | null; maxTemperature: number | null; minHumidity: number | null; maxHumidity: number | null },
+) => api.put<Device>(`/devices/${id}`, body).then((r) => r.data)
+
+/** Re-sends the limits to the hardware. */
+export const syncDeviceThresholds = (id: string) => api.post(`/devices/${id}/sync-thresholds`).then(() => undefined)
+
 /** Registers a Firebase node as a device. The key doubles as the serial, which is how the firmware names it. */
 export const registerDevice = (firebaseKey: string) =>
   api.post<{ id: string }>('/devices', {
