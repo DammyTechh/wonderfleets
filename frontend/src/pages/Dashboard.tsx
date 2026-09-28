@@ -51,12 +51,12 @@ export default function Dashboard() {
           inStrip label="Average temperature"
           value={temperatureText(data.avgTemperature.average)}
           delta={tempDelta ? { value: `${tempDelta} °C`, good: (data.avgTemperature.deltaFromLastHour ?? 0) <= 0 } : null}
-          hint="vs. last hour, trucks in transit"
+          hint="vs. the hour before"
         />
         <StatCard
           inStrip label="Average humidity"
           value={humidityText(data.humidity.average)}
-          hint={`${data.humidity.percentAboveThreshold}% of trucks above their limit`}
+          hint={`${data.humidity.percentAboveThreshold}% above their limit`}
         />
         <StatCard
           inStrip label="CO₂ emissions"

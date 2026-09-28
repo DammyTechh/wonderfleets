@@ -105,7 +105,8 @@ internal sealed class DashboardService(
     private async Task<decimal?> AvgTempAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct)
     {
         var avg = await db.SensorReadings.AsNoTracking()
-            .Where(r => r.TripId != null && r.Temperature != null && r.RecordedAt >= from && r.RecordedAt < to)
+            // Every reading counts, on a trip or not: a unit reports either way.
+            .Where(r => r.Temperature != null && r.RecordedAt >= from && r.RecordedAt < to)
             .AverageAsync(r => r.Temperature, ct);
         return avg is null ? null : Math.Round(avg.Value, 1);
     }

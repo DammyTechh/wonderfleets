@@ -137,7 +137,8 @@ internal sealed class TelemetryIngestionService(
         }
         device.LastTemperature = temperature ?? device.LastTemperature;
         device.LastHumidity = humidity ?? device.LastHumidity;
-        if (hasFix) { device.LastLatitude = lat; device.LastLongitude = lng; }
+        // No fix keeps the last known position, and records when it was taken so the UI can age it.
+        if (hasFix) { device.LastLatitude = lat; device.LastLongitude = lng; device.LastFixAt = recordedAt; }
         if (snapshot.BatteryLevel is { } battery) device.BatteryLevel = Math.Clamp(battery, 0, 100);
 
         var trip = await db.Trips

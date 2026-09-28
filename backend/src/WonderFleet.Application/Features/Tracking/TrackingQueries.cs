@@ -108,6 +108,18 @@ internal sealed class TrackingQueries(IApplicationDbContext db, IClock clock, Te
         var humidity = await moving.AverageAsync(t => t.LastHumidity, ct);
         var hot = await moving.CountAsync(t => t.LastTemperature > t.MaxTemperature, ct);
         var humid = await moving.CountAsync(t => t.LastHumidity > t.MaxHumidity, ct);
+
+        // Nothing on the road: fall back to the units that are reporting, so a working
+        // device still shows its readings here instead of a dash. Limits are the unit's own.
+        if (temperature is null && humidity is null)
+        {
+            var reporting = db.Devices.AsNoTracking().Where(d => d.IsOnline);
+            temperature = await reporting.AverageAsync(d => d.LastTemperature, ct);
+            humidity = await reporting.AverageAsync(d => d.LastHumidity, ct);
+            hot = await reporting.CountAsync(d => d.MaxTemperature != null && d.LastTemperature > d.MaxTemperature, ct);
+            humid = await reporting.CountAsync(d => d.MaxHumidity != null && d.LastHumidity > d.MaxHumidity, ct);
+        }
+
         return new FleetClimateDto(
             temperature is null ? null : Math.Round(temperature.Value, 1),
             hot == 0 ? "Within range" : "Above limit",
@@ -121,6 +133,13 @@ internal sealed class TrackingQueries(IApplicationDbContext db, IClock clock, Te
         var moving = trips.Where(t => t.Status != TripStatus.Scheduled && t.DeviceId != null);
         var expected = await moving.CountAsync(ct);
         var online = await moving.CountAsync(t => t.Device!.IsOnline, ct);
+        if (expected == 0)
+        {
+            // Nothing on the road: report on the registered units, so "0/0" never stands in
+            // for hardware that is transmitting perfectly well.
+            expected = await db.Devices.AsNoTracking().CountAsync(d => d.Kind == DeviceKind.Master, ct);
+            online = await db.Devices.AsNoTracking().CountAsync(d => d.Kind == DeviceKind.Master && d.IsOnline, ct);
+        }
         var last = sync.LastReadingStoredAt ?? await db.SensorReadings.AsNoTracking().MaxAsync(r => (DateTimeOffset?)r.ReceivedAt, ct);
         var seconds = last is null ? -1 : (int)Math.Max(0, (now - last.Value).TotalSeconds);
         var all = expected == online;

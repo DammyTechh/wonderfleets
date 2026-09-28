@@ -239,6 +239,7 @@ You do not run a migration command. Start the API and it migrates.
 backend/db/migrations/V001__initial_schema.sql
 backend/db/migrations/V002__fuel_planning.sql
 backend/db/migrations/V003__device_thresholds.sql
+backend/db/migrations/V004__device_last_fix.sql
 ```
 
 Applied versions are recorded in the `schema_migrations` table with a checksum; editing a
@@ -362,7 +363,13 @@ temperature and humidity charts and the compliance figures on *Analytics*, measu
 whichever limits applied at the time. A reading with no limits at all is not counted, so the
 compliance percentage always describes readings that had something to be measured against.
 
-Once a unit is assigned to a trip, its readings also appear on the dashboard and the live map.
+With nothing on the road, the dashboard's average temperature and humidity come from the
+units that are reporting, and the sync line counts registered units rather than showing 0/0.
+Once a unit is assigned to a trip, its readings also appear in *Active fleets* and on the map.
+
+**Position.** `lat: 0, lng: 0` from the firmware means "no fix". The last known position is
+kept rather than wiped, and is always shown with the age of that fix, so a remembered
+location is never mistaken for a current one.
 
 ### How live updates reach the screen
 

@@ -331,6 +331,8 @@ export interface Device {
   lastHumidity?: number | null
   lastLatitude?: number | null
   lastLongitude?: number | null
+  /** When those coordinates were reported; the position is kept when a fix is lost. */
+  lastFixAt?: string | null
   currentTripCode?: string | null
   /** The unit's own limits, used when it is not on a trip. */
   minTemperature?: number | null

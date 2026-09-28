@@ -128,10 +128,20 @@ export default function Devices() {
                             : ''}
                         </span>
                       </td>
-                      <td className="td tabular whitespace-nowrap text-[13px] text-ink-soft">
-                        {device.lastLatitude != null && device.lastLongitude != null
-                          ? `${device.lastLatitude.toFixed(3)}, ${device.lastLongitude.toFixed(3)}`
-                          : 'No GPS fix'}
+                      <td className="td whitespace-nowrap text-[13px] text-ink-soft">
+                        {device.lastLatitude != null && device.lastLongitude != null ? (
+                          <>
+                            <span className="tabular block">
+                              {device.lastLatitude.toFixed(3)}, {device.lastLongitude.toFixed(3)}
+                            </span>
+                            {/* A kept position must be dated, or it reads as current. */}
+                            <span className="block text-xs text-ink-faint">
+                              {device.lastFixAt ? `fix ${since(device.lastFixAt)}` : 'earlier fix'}
+                            </span>
+                          </>
+                        ) : (
+                          'No GPS fix'
+                        )}
                       </td>
                       <td className="td whitespace-nowrap text-[13px] text-ink-soft">
                         {device.lastChangedAt ? since(device.lastChangedAt) : 'Never'}

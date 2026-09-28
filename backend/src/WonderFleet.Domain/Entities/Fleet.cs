@@ -55,6 +55,8 @@ public class Device : AuditableEntity
     public decimal? LastHumidity { get; set; }
     public double? LastLatitude { get; set; }
     public double? LastLongitude { get; set; }
+    /// When those coordinates were reported. Null while the unit has never had a fix.
+    public DateTimeOffset? LastFixAt { get; set; }
     /// Fingerprint of the last payload so identical polls are not stored twice.
     public string? LastPayloadHash { get; set; }
 

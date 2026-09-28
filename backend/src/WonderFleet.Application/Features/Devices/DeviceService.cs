@@ -30,7 +30,7 @@ public sealed record DeviceDto(
     Guid Id, string Serial, string FirebaseKey, string Kind, Guid? ParentDeviceId, string? ParentSerial,
     Guid? VehicleId, string? VehicleCode, string? FleetNumber, string? FirmwareVersion, int? BatteryLevel,
     bool IsOnline, DateTimeOffset? LastSeenAt, DateTimeOffset? LastChangedAt, decimal? LastTemperature, decimal? LastHumidity,
-    double? LastLatitude, double? LastLongitude, Guid? CurrentTripId, string? CurrentTripCode, string? CurrentRoute, string SensorStatus,
+    double? LastLatitude, double? LastLongitude, DateTimeOffset? LastFixAt, Guid? CurrentTripId, string? CurrentTripCode, string? CurrentRoute, string SensorStatus,
     decimal? MinTemperature, decimal? MaxTemperature, decimal? MinHumidity, decimal? MaxHumidity,
     /// "Trip" while a shipment is running (its limits win), otherwise "Device".
     string ThresholdSource);
@@ -262,7 +262,7 @@ internal sealed class DeviceService(
         x.d.Id, x.d.Serial, x.d.FirebaseKey, x.d.Kind.ToString(), x.d.ParentDeviceId, x.Parent,
         x.d.VehicleId, x.d.Vehicle != null ? x.d.Vehicle.VehicleCode : null, x.d.Vehicle != null ? x.d.Vehicle.FleetNumber : null,
         x.d.FirmwareVersion, x.d.BatteryLevel, x.d.IsOnline, x.d.LastSeenAt, x.d.LastChangedAt,
-        x.d.LastTemperature, x.d.LastHumidity, x.d.LastLatitude, x.d.LastLongitude,
+        x.d.LastTemperature, x.d.LastHumidity, x.d.LastLatitude, x.d.LastLongitude, x.d.LastFixAt,
         x.Trip != null ? (Guid?)x.Trip.Id : null, x.Trip != null ? x.Trip.TripCode : null,
         x.Trip != null ? x.Trip.OriginLabel + " → " + x.Trip.DestinationLabel : null,
         // Off a trip, judge the last reading against the unit's own limits.
