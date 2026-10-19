@@ -9,7 +9,7 @@
 
 ## First deployment (Render)
 
-1. Create the blueprint from `deploy/render.yaml`.
+1. Create the blueprint from `render.yaml` in the repository root (Render does not read it from a subfolder).
 2. Set the secrets marked `sync: false`: `Seed__AdminPassword`, `Firebase__ServiceAccountJson`,
    `Google__ApiKey`, `OpenAi__ApiKey`, `Email__ApiKey`, `Sms__Termii__ApiKey`, `Telemetry__WebhookSecret`.
 3. Deploy. The first boot applies `V001__initial_schema.sql` and seeds the administrator.

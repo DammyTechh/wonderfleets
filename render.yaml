@@ -1,0 +1,143 @@
+# Render blueprint for WonderFleet (Ofemini Global Limited).
+#
+# Render only reads this file from the REPOSITORY ROOT, which is why it lives here
+# rather than in deploy/ alongside the Dockerfile.
+#
+# It creates three things: the API (Docker), a PostgreSQL database, and the admin app
+# (static). Values marked `sync: false` are typed once in the Render dashboard and are
+# never committed. Service URLs are wired between services rather than hardcoded, so
+# CORS and the API base URL stay correct even if Render appends a suffix to a name.
+services:
+  - type: web
+    name: wonderfleet-api
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    # Paths are relative to the repository root. The build context must be the root
+    # because the image also copies docs/swagger, which lives outside backend/.
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/ready
+    autoDeploy: true
+    disk:
+      # Uploaded partner documents and generated reports. Without this they would be
+      # lost on every deploy, because a container's own filesystem is temporary.
+      name: wonderfleet-uploads
+      mountPath: /var/data/wonderfleet
+      sizeGB: 1
+    envVars:
+      # The Dockerfile makes Kestrel listen on 8080; tell Render so it routes to it
+      # rather than guessing.
+      - key: PORT
+        value: "8080"
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__Default
+        fromDatabase:
+          name: wonderfleet-db
+          property: connectionString
+      - key: Database__SslMode
+        value: Require
+      - key: Storage__RootPath
+        value: /var/data/wonderfleet
+      - key: App__PublicApiBaseUrl
+        fromService:
+          type: web
+          name: wonderfleet-api
+          envVarKey: RENDER_EXTERNAL_URL
+      # The admin app's real URL, so the browser is allowed to call the API.
+      - key: App__FrontendBaseUrl
+        fromService:
+          type: web
+          name: wonderfleet-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: App__AllowedOrigins__0
+        fromService:
+          type: web
+          name: wonderfleet-web
+          envVarKey: RENDER_EXTERNAL_URL
+
+      # --- secrets ----------------------------------------------------------
+      # Generated once by Render and then kept. Tokens issued before a change stop
+      # working, so do not regenerate these casually.
+      - key: Jwt__AdminSigningKey
+        generateValue: true
+      - key: Jwt__PortalSigningKey
+        generateValue: true
+      - key: Security__TokenHashKey
+        generateValue: true
+      - key: Security__MediaSigningKey
+        generateValue: true
+      # The first administrator's password. Set it in the dashboard before the first
+      # deploy; you are asked to change it at first sign-in.
+      - key: Seed__AdminPassword
+        sync: false
+
+      # --- hardware feed ----------------------------------------------------
+      - key: Firebase__DatabaseUrl
+        value: https://wonderfleet-12693-default-rtdb.europe-west1.firebasedatabase.app
+      # The service account key, base64 encoded. Required here: open database rules
+      # are never acceptable on a public deployment.
+      - key: Firebase__ServiceAccountJson
+        sync: false
+      - key: Firebase__AllowUnauthenticated
+        value: "false"
+      - key: Telemetry__PollingEnabled
+        value: "true"
+      - key: Telemetry__WebhookSecret
+        sync: false
+
+      # --- optional integrations -------------------------------------------
+      # Leave any of these blank: weather falls back to keyless Open-Meteo, routing to
+      # a transparent heuristic, and email and SMS are written to the log instead of sent.
+      - key: Google__ApiKey
+        sync: false
+      - key: OpenAi__ApiKey
+        sync: false
+      - key: Email__Provider
+        value: ResendApi
+      - key: Email__ApiKey
+        sync: false
+      - key: Email__From
+        value: WonderFleet <alerts@ofeminiagrictech.com>
+      - key: Sms__Provider
+        value: Termii
+      - key: Sms__Termii__ApiKey
+        sync: false
+      - key: Sms__Termii__SenderId
+        value: WonderFleet
+
+  - type: web
+    name: wonderfleet-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: wonderfleet-api
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      # Single-page app: every path is served by index.html so a deep link such as
+      # /devices works on a hard refresh.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+
+databases:
+  - name: wonderfleet-db
+    plan: basic-256mb
+    region: frankfurt
+    postgresMajorVersion: "16"
