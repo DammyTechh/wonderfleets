@@ -3,7 +3,7 @@
 ## Why Clean Architecture here
 
 The hardware feed, the notification providers and the mapping/AI providers are all likely to change during
-and after the prototype (the Firebase feed may become an MQTT broker; Termii may become Twilio). Keeping
+and after the prototype (the Firebase feed may become an MQTT broker; the SMS provider may change again). Keeping
 every one of them behind an interface owned by the Application layer means those swaps never touch business
 rules. The Domain project has **no package references at all**.
 

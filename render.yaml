@@ -6,7 +6,10 @@
 # It creates three things: the API (Docker), a PostgreSQL database, and the admin app
 # (static). Values marked `sync: false` are typed once in the Render dashboard and are
 # never committed. Service URLs are wired between services rather than hardcoded, so
-# CORS and the API base URL stay correct even if Render appends a suffix to a name.
+# CORS and the API base URL stay correct.
+#
+# Custom domains: the admin app is wonderfleet.org and the API is api.wonderfleet.org.
+# Render also adds www.wonderfleet.org automatically, redirecting it to the root.
 services:
   - type: web
     name: wonderfleet-api
@@ -19,6 +22,8 @@ services:
     dockerContext: .
     healthCheckPath: /health/ready
     autoDeploy: true
+    domains:
+      - api.wonderfleet.org
     disk:
       # Uploaded partner documents and generated reports. Without this they would be
       # lost on every deploy, because a container's own filesystem is temporary.
@@ -40,18 +45,20 @@ services:
         value: Require
       - key: Storage__RootPath
         value: /var/data/wonderfleet
+      # The custom domains, not the onrender.com ones: these appear in share links,
+      # password-reset emails and signed media URLs, so they must be what people see.
       - key: App__PublicApiBaseUrl
-        fromService:
-          type: web
-          name: wonderfleet-api
-          envVarKey: RENDER_EXTERNAL_URL
-      # The admin app's real URL, so the browser is allowed to call the API.
+        value: https://api.wonderfleet.org
       - key: App__FrontendBaseUrl
-        fromService:
-          type: web
-          name: wonderfleet-web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://wonderfleet.org
+      # Origins the browser may call the API from. The browser sends the origin it is
+      # actually on, so every hostname that can serve the app needs to be listed:
+      # the root, the www redirect, and the onrender.com address while DNS propagates.
       - key: App__AllowedOrigins__0
+        value: https://wonderfleet.org
+      - key: App__AllowedOrigins__1
+        value: https://www.wonderfleet.org
+      - key: App__AllowedOrigins__2
         fromService:
           type: web
           name: wonderfleet-web
@@ -101,11 +108,21 @@ services:
       - key: Email__From
         value: WonderFleet <alerts@ofeminiagrictech.com>
       - key: Sms__Provider
-        value: Termii
-      - key: Sms__Termii__ApiKey
+        value: Twilio
+      - key: Sms__Twilio__AccountSid
         sync: false
-      - key: Sms__Termii__SenderId
-        value: WonderFleet
+      - key: Sms__Twilio__AuthToken
+        sync: false
+      # The sender shown on the recipient's phone. Nigerian networks do NOT deliver
+      # from Twilio long codes, so for Nigerian recipients this must be a
+      # pre-registered alphanumeric sender ID (for example WonderFleet), not a +234
+      # number. Registration takes about three weeks; see the setup guide.
+      # Alternatively leave this blank and set MessagingServiceSid. With neither,
+      # Twilio rejects the send.
+      - key: Sms__Twilio__FromNumber
+        sync: false
+      - key: Sms__Twilio__MessagingServiceSid
+        sync: false
 
   - type: web
     name: wonderfleet-web
@@ -114,14 +131,14 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
+    domains:
+      - wonderfleet.org
     envVars:
       - key: NODE_VERSION
         value: "20"
+      # Baked into the built files, so it must be the public API hostname.
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: wonderfleet-api
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://api.wonderfleet.org
     routes:
       # Single-page app: every path is served by index.html so a deep link such as
       # /devices works on a hard refresh.

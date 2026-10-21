@@ -11,7 +11,7 @@
 
 1. Create the blueprint from `render.yaml` in the repository root (Render does not read it from a subfolder).
 2. Set the secrets marked `sync: false`: `Seed__AdminPassword`, `Firebase__ServiceAccountJson`,
-   `Google__ApiKey`, `OpenAi__ApiKey`, `Email__ApiKey`, `Sms__Termii__ApiKey`, `Telemetry__WebhookSecret`.
+   `Google__ApiKey`, `OpenAi__ApiKey`, `Email__ApiKey`, the `Sms__Twilio__*` keys, `Telemetry__WebhookSecret`.
 3. Deploy. The first boot applies `V001__initial_schema.sql` and seeds the administrator.
 4. Sign in and change the seeded password immediately (the account is flagged must-change-password).
 5. Register the devices (`POST /api/v1/devices`) using the Firebase keys the hardware writes under `vehicles/`.
