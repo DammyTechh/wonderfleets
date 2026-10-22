@@ -4,7 +4,7 @@ public sealed class FirebaseOptions
 {
     public const string Section = "Firebase";
 
-    /// Realtime Database URL, e.g. https://wonderfleet-12693-default-rtdb.europe-west1.firebasedatabase.app
+    /// Realtime Database URL, e.g. https://wonderfleets-bb040-default-rtdb.firebaseio.com
     public string? DatabaseUrl { get; set; }
 
     /// Node holding the live device documents (the hardware writes vehicles/{key}).

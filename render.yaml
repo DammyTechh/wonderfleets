@@ -82,7 +82,7 @@ services:
 
       # --- hardware feed ----------------------------------------------------
       - key: Firebase__DatabaseUrl
-        value: https://wonderfleet-12693-default-rtdb.europe-west1.firebasedatabase.app
+        value: https://wonderfleets-bb040-default-rtdb.firebaseio.com
       # The service account key, base64 encoded. Required here: open database rules
       # are never acceptable on a public deployment.
       - key: Firebase__ServiceAccountJson

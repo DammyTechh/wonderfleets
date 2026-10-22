@@ -272,7 +272,7 @@ system of record. Firebase is the doorway, not the filing cabinet.
 ### What to set in `.env`
 
 ```bash
-Firebase__DatabaseUrl=https://wonderfleet-12693-default-rtdb.europe-west1.firebasedatabase.app
+Firebase__DatabaseUrl=https://wonderfleets-bb040-default-rtdb.firebaseio.com
 Firebase__ServiceAccountJson=
 Firebase__AllowUnauthenticated=false
 Telemetry__PollingEnabled=true
@@ -328,7 +328,7 @@ firmware SDK calls read them with `getInt()` and reject fractions. The engineer'
 node (`test`) is explicitly ignored and never treated as a device.
 
 Concretely, the API reads
-`https://wonderfleet-12693-default-rtdb.europe-west1.firebasedatabase.app/vehicles.json`
+`https://wonderfleets-bb040-default-rtdb.firebaseio.com/vehicles.json`
 every `Telemetry__PollIntervalSeconds`, and writes limits to
 `…/settings/TRK-0001.json` whenever you change them for a trip.
 

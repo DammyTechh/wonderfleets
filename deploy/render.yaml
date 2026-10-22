@@ -47,7 +47,7 @@ services:
         sync: false
       # --- integrations -----------------------------------------------------
       - key: Firebase__DatabaseUrl
-        value: https://wonderfleet-12693-default-rtdb.europe-west1.firebasedatabase.app
+        value: https://wonderfleets-bb040-default-rtdb.firebaseio.com
       - key: Firebase__ServiceAccountJson
         sync: false
       - key: Google__ApiKey
