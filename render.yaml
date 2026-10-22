@@ -85,6 +85,10 @@ services:
         value: https://wonderfleets-bb040-default-rtdb.firebaseio.com
       # The service account key, base64 encoded. Required here: open database rules
       # are never acceptable on a public deployment.
+      #
+      # A key belongs to ONE Firebase project. The database above moved to the
+      # `wonderfleets` project, so a key downloaded from the old project is rejected
+      # with 401/403 — download a fresh key from the project that owns this database.
       - key: Firebase__ServiceAccountJson
         sync: false
       - key: Firebase__AllowUnauthenticated

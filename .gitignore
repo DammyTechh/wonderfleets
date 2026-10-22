@@ -26,9 +26,18 @@ secrets.json
 # Firebase's own name for a downloaded key: <project>-firebase-adminsdk-<id>.json
 *firebase-adminsdk*.json
 
-# uploaded photos and documents in local development
-storage/
-backend/src/WonderFleet.Api/storage/
+# Uploaded photos and documents written at runtime in local development.
+#
+# These patterns MUST stay anchored with a leading slash. A bare `storage/`
+# matches at every depth, and on Windows and macOS Git compares ignore patterns
+# without regard to letter case — so it also swallows the source folder
+# backend/src/WonderFleet.Infrastructure/Storage/. That code then never reaches
+# GitHub and the build fails with:
+#   error CS0234: The type or namespace name 'Storage' does not exist
+# Add runtime folders here by their full path from the repository root, never as
+# a bare folder name.
+/storage/
+/backend/src/WonderFleet.Api/storage/
 
 # ---- editors and OS ---------------------------------------------------------
 .idea/

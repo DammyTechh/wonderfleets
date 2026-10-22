@@ -280,8 +280,12 @@ Telemetry__PollIntervalSeconds=10
 ```
 
 `Firebase__DatabaseUrl` is the URL shown at the top of the Realtime Database page in the
-Firebase console — the one already filled in above matches your `wonderFleet` project.
-No trailing slash, no `/vehicles` on the end.
+Firebase console — the one already filled in above matches the `wonderfleets` project the
+hardware now writes to. No trailing slash, no `/vehicles` on the end.
+
+> **If the database moves again**, change this value *and* download a new service account
+> key. A key is issued by one project and is rejected by any other, so a stale key fails
+> with 401 or 403 even though the URL is right.
 
 **For the credential, pick one of three:**
 
