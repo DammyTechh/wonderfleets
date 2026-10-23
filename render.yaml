@@ -109,8 +109,12 @@ services:
         value: ResendApi
       - key: Email__ApiKey
         sync: false
+      # MUST use a domain verified in the Resend dashboard, or every send is refused with
+      # "403 … domain is not verified" — the address here is not a label, it is the
+      # permission being claimed. wonderfleet.org is the verified domain; change this only
+      # after verifying the new domain in Resend first.
       - key: Email__From
-        value: WonderFleet <alerts@ofeminiagrictech.com>
+        value: WonderFleet <alerts@wonderfleet.org>
       - key: Sms__Provider
         value: Twilio
       - key: Sms__Twilio__AccountSid

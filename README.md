@@ -446,7 +446,7 @@ The three things it distinguishes, which otherwise look identical from outside:
 | What you see | What it means |
 |---|---|
 | Email provider is **`Log`** | `Email__ApiKey` never reached the server, so messages are written to the log instead of sent. Set the key and redeploy. |
-| Status **Failed** with `Resend 403 … domain is not verified` | The domain in `Email__From` is not the one verified in Resend. These must match: verifying `wonderfleet.org` does not permit sending as `@ofeminiagrictech.com`. |
+| Status **Failed** with `Resend 403 … domain is not verified` | The domain in `Email__From` is not one verified in Resend. These must match exactly — verifying `wonderfleet.org` does not permit sending as `@ofeminiagrictech.com`. Either point `Email__From` at the verified domain, or verify the other domain in Resend as well. Changing it in Render's Environment tab takes effect on the restart that follows; no rebuild is needed. |
 | Status **Failed** with `Resend 401` | The API key is wrong or was revoked. |
 | Status stays **Pending** | The API is up but the dispatcher is not draining the outbox — check the service is running and the database is reachable. |
 
