@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './api'
 import type {
   Alert, AlertActivity, AlertRule, AnalyticsOverview, ChannelSetting, Dashboard, Device, Driver,
-  FleetRow, FuelPrice, LiveTracking, NotificationItem, Paged, PartnerListItem, PartnerProfile, ProcessorListItem, ProduceType,
-  FirebaseStatus, ReportCatalogItem, RouteRecommendation, ShareLink, ShareLinkCreated, TripDetail, TripSummary,
+  FleetRow, FuelPrice, LiveTracking, NotificationItem, Paged, PartnerListItem, PartnerProfile, PartnerStatus,
+  ProcessorListItem, ProduceType,
+  FirebaseStatus, ReportCatalogItem, RouteRecommendation, ShareLink, ShareLinkCreated, TripDetail, TripSummary, VehicleTrack,
 } from './types'
 
 const get = async <T,>(url: string, params?: Record<string, unknown>) =>
@@ -50,6 +51,21 @@ export const useTrip = (id?: string) =>
 export const useLiveTracking = () =>
   useQuery({ queryKey: keys.tracking, queryFn: () => get<LiveTracking>('/tracking/live'), refetchInterval: 20_000 })
 
+/**
+ * Where one vehicle has actually been, newest last.
+ *
+ * A single marker on a map of Nigeria cannot show movement — the breadcrumb can, so the
+ * expanded map draws this behind the vehicle. Readings without a fix are excluded by the
+ * API, so a stretch with no GPS simply leaves a straight hop in the line.
+ */
+export const useTripTrack = (tripId?: string | null, hours = 12, enabled = true) =>
+  useQuery({
+    queryKey: ['tracking', 'trip', tripId, hours],
+    queryFn: () => get<VehicleTrack>(`/tracking/trips/${tripId}`, { hours }),
+    enabled: Boolean(tripId) && enabled,
+    refetchInterval: 30_000,
+  })
+
 export const usePartners = (params: Record<string, unknown>) =>
   useQuery({ queryKey: keys.partners(params), queryFn: () => get<Paged<PartnerListItem>>('/logistics-partners', params) })
 
@@ -88,6 +104,21 @@ export const updateDevice = (
 
 /** Re-sends the limits to the hardware. */
 export const syncDeviceThresholds = (id: string) => api.post(`/devices/${id}/sync-thresholds`).then(() => undefined)
+
+/**
+ * Moves a partner or processor between Pending, Active and Suspended.
+ *
+ * This is the gate on operations, not a label: a trip cannot be created unless both the
+ * carrying partner and the receiving processor are Active, so a party left Pending blocks
+ * dispatch with "Activate the partner first".
+ */
+export type StatusChange = { id: string; status: PartnerStatus; reason?: string | null }
+
+export const changePartnerStatus = ({ id, status, reason }: StatusChange) =>
+  api.post(`/logistics-partners/${id}/status`, { status, reason: reason ?? null }).then(() => undefined)
+
+export const changeProcessorStatus = ({ id, status, reason }: StatusChange) =>
+  api.post(`/agro-processors/${id}/status`, { status, reason: reason ?? null }).then(() => undefined)
 
 /** Registers a Firebase node as a device. The key doubles as the serial, which is how the firmware names it. */
 export const registerDevice = (firebaseKey: string) =>

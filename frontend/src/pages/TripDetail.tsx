@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { FleetMap } from '@/components/FleetMap'
 import { FuelBreakdown, formatMoney } from '@/components/FuelCard'
+import { RoutePlanDialog } from '@/components/RoutePlanDialog'
 import { StatCard, StatStrip, Card, CardHeader, ErrorNote, Field, Loading, Modal, PageHeader, Spinner, StatusChip } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { dt, humidity as humidityText, km, since, temperature as temperatureText, tonnes } from '@/lib/format'
@@ -73,6 +74,8 @@ export default function TripDetailPage() {
                 {complete.isPending ? <Spinner /> : <CheckCircle2 size={16} />} Mark delivered
               </button>
             )}
+            {/* Only upcoming or active trips can be planned; the API rejects an ended one. */}
+            {!ended && <RoutePlanDialog tripId={tripId} />}
             {!ended && (
               <button className="btn-secondary" onClick={() => setCancelling(true)}>
                 <XCircle size={16} /> Cancel
@@ -117,6 +120,7 @@ export default function TripDetailPage() {
           />
           <FleetMap
             height={420}
+            expandable
             markers={
               trip.latitude != null && trip.longitude != null
                 ? [

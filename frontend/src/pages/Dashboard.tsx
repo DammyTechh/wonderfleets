@@ -96,21 +96,7 @@ export default function Dashboard() {
             title="Live fleet tracking"
             action={<Link to="/tracking" className="btn-secondary h-8 px-3 text-[13px]">Open tracking</Link>}
           />
-          <dl className="flex flex-wrap gap-x-5 gap-y-1 border-b border-line px-5 py-2.5 text-[13px]">
-            {[
-              ['Live', data.statusCounts.live, 'bg-normal-500'],
-              ['In transit', data.statusCounts.inTransit, 'bg-info-500'],
-              ['Stopped', data.statusCounts.stopped, 'bg-critical-500'],
-              ['Delayed', data.statusCounts.delay, 'bg-warning-500'],
-            ].map(([term, count, dot]) => (
-              <div key={term as string} className="flex items-center gap-1.5">
-                <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden />
-                <dt className="text-ink-soft">{term}</dt>
-                <dd className="tabular font-medium">{count}</dd>
-              </div>
-            ))}
-          </dl>
-          <FleetMap markers={data.markers} height={360} />
+          <FleetMap markers={data.markers} height={360} expandable counts={data.statusCounts} />
           <p className="flex items-center gap-2 border-t border-line px-5 py-2.5 text-[13px] text-ink-soft">
             <Radio size={15} className="text-brand-500" />
             {data.sync.message}

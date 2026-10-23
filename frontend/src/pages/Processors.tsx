@@ -7,6 +7,7 @@ import { download, errorMessage } from '@/lib/api'
 import { useProcessors } from '@/lib/queries'
 import type { ProcessorListItem } from '@/lib/types'
 import { CreateProcessorDialog } from '@/components/CreateProcessorDialog'
+import { PartnerStatusAction } from '@/components/PartnerStatusAction'
 import { ShareLinkDialog } from './Partners'
 
 export default function Processors() {
@@ -66,10 +67,13 @@ export default function Processors() {
                   <td className="td tabular">{processor.fleetOrders}</td>
                   <td className="td">{processor.location}</td>
                   <td className="td"><StatusChip status={processor.status} /></td>
-                  <td className="td text-right">
-                    <button className="btn-secondary px-3 py-1.5 text-xs" onClick={() => setSharing(processor)}>
-                      <Link2 size={14} /> Manage access
-                    </button>
+                  <td className="td">
+                    <div className="flex justify-end gap-1.5">
+                      <PartnerStatusAction kind="processor" id={processor.id} name={processor.name} status={processor.status} />
+                      <button className="btn-secondary px-3 py-1.5 text-xs" onClick={() => setSharing(processor)}>
+                        <Link2 size={14} /> Manage access
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

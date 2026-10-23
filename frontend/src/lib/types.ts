@@ -135,6 +135,14 @@ export interface TrackPoint {
   recordedAt: string
 }
 
+/** One vehicle's recent fixes, as served by GET /tracking/trips/{tripId}. */
+export interface VehicleTrack {
+  tripId: string
+  fleetNumber: string
+  vehicleCode: string
+  track: TrackPoint[]
+}
+
 export interface ActiveFleet {
   tripId: string
   fleetNumber: string

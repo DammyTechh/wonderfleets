@@ -246,13 +246,15 @@ export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () 
   )
 }
 
-export function Modal({ open, title, description, onClose, children, width = 'max-w-lg' }: {
+export function Modal({ open, title, description, onClose, children, width = 'max-w-lg', bodyClassName }: {
   open: boolean
   title: string
   description?: string
   onClose: () => void
   children: ReactNode
   width?: string
+  /** Override the padded, scrolling body — an expanded map wants to run edge to edge. */
+  bodyClassName?: string
 }) {
   useEffect(() => {
     if (!open) return
@@ -278,7 +280,7 @@ export function Modal({ open, title, description, onClose, children, width = 'ma
             <X size={18} />
           </button>
         </header>
-        <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>
+        <div className={bodyClassName ?? 'max-h-[70vh] overflow-y-auto p-5'}>{children}</div>
       </div>
     </div>
   )

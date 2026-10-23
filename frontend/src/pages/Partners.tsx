@@ -2,6 +2,7 @@ import { Copy, Download, Link2, Plus, Users } from '@/components/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CreatePartnerDialog } from '@/components/CreatePartnerDialog'
+import { PartnerStatusAction } from '@/components/PartnerStatusAction'
 import {
   Avatar, Card, EmptyState, ErrorNote, Field, Loading, Modal, PageHeader, Pagination, SearchInput, Spinner,
   StatusChip, Table,
@@ -78,10 +79,13 @@ export default function Partners() {
                   <td className="td">
                     <StatusChip status={partner.status} />
                   </td>
-                  <td className="td text-right">
-                    <button className="btn-secondary px-3 py-1.5 text-xs" onClick={() => setSharing(partner)}>
-                      <Link2 size={14} /> Partner access
-                    </button>
+                  <td className="td">
+                    <div className="flex justify-end gap-1.5">
+                      <PartnerStatusAction kind="partner" id={partner.id} name={partner.companyName} status={partner.status} />
+                      <button className="btn-secondary px-3 py-1.5 text-xs" onClick={() => setSharing(partner)}>
+                        <Link2 size={14} /> Partner access
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
