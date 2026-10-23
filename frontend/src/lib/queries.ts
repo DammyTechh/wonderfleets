@@ -4,7 +4,7 @@ import type {
   Alert, AlertActivity, AlertRule, AnalyticsOverview, ChannelSetting, Dashboard, Device, Driver,
   FleetRow, FuelPrice, LiveTracking, NotificationItem, Paged, PartnerListItem, PartnerProfile, PartnerStatus,
   ProcessorListItem, ProduceType,
-  FirebaseStatus, ReportCatalogItem, RouteRecommendation, ShareLink, ShareLinkCreated, TripDetail, TripSummary, VehicleTrack,
+  FirebaseStatus, ReportCatalogItem, RouteRecommendation, ShareLink, ShareLinkCreated, TripDetail, TripSummary, VehicleTrack, DeliveryHealth, TestEmailResult,
 } from './types'
 
 const get = async <T,>(url: string, params?: Record<string, unknown>) =>
@@ -71,6 +71,12 @@ export const usePartners = (params: Record<string, unknown>) =>
 
 export const usePartner = (id?: string) =>
   useQuery({ queryKey: keys.partner(id ?? ''), queryFn: () => get<PartnerProfile>(`/logistics-partners/${id}`), enabled: Boolean(id) })
+
+/** Messaging configuration and the outcome of recent sends, for the Settings panel. */
+export const useDeliveryHealth = () =>
+  useQuery({ queryKey: ['deliveries'], queryFn: () => get<DeliveryHealth>('/notifications/deliveries'), refetchInterval: 15_000 })
+
+export const sendTestEmail = () => api.post<TestEmailResult>('/notifications/test-email').then((r) => r.data)
 
 export const useFuelPrices = () =>
   useQuery({ queryKey: ['fuel', 'prices'], queryFn: () => get<FuelPrice[]>('/fuel/prices'), staleTime: 300_000 })

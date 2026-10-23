@@ -40,6 +40,8 @@ export default function App() {
       <Route path="/sign-in" element={<SignIn />} />
 
       {/* Login-free partner portals, reached through a share link. */}
+      {/* The API issues /share#<token>; /track?t= is kept so older links still open. */}
+      <Route path="/share" element={<PortalEntry />} />
       <Route path="/track" element={<PortalEntry />} />
       <Route path="/portal/logistics" element={<LogisticsPortal />} />
       <Route path="/portal/agro" element={<AgroPortal />} />

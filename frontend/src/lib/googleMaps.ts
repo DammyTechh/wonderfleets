@@ -14,6 +14,37 @@ export const hasGoogleMapsKey = KEY.length > 0
 
 let pending: Promise<typeof google.maps> | null = null
 
+declare global {
+  interface Window { gm_authFailure?: () => void }
+}
+
+type AuthListener = (reason: string) => void
+const authListeners = new Set<AuthListener>()
+
+/**
+ * Google rejects a key *after* the script has loaded successfully.
+ *
+ * A wrong HTTP referrer, disabled billing or an un-enabled Maps JavaScript API all load
+ * fine and then paint Google's own grey "Oops! Something went wrong" panel over the map.
+ * The script's load event has already fired by then, so nothing else notices. This global
+ * is the documented hook Google calls in that case, and it is how the app finds out it
+ * should draw the coordinate grid instead.
+ */
+if (typeof window !== 'undefined') {
+  window.gm_authFailure = () => {
+    const reason = 'Google rejected this key for this site. Check the key\'s HTTP referrer '
+      + 'restriction (it must list this exact hostname, www included), that the Maps '
+      + 'JavaScript API is enabled, and that billing is active.'
+    for (const listener of authListeners) listener(reason)
+  }
+}
+
+/** Subscribes to that rejection; returns an unsubscribe function. */
+export function onGoogleMapsAuthFailure(listener: AuthListener): () => void {
+  authListeners.add(listener)
+  return () => { authListeners.delete(listener) }
+}
+
 export function loadGoogleMaps(): Promise<typeof google.maps> {
   if (!hasGoogleMapsKey) return Promise.reject(new Error('No Maps JavaScript API key is configured.'))
   if (typeof window !== 'undefined' && window.google?.maps) return Promise.resolve(window.google.maps)

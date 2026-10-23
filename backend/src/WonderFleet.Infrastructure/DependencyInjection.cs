@@ -164,6 +164,15 @@ public static class DependencyInjection
         {
             services.AddSingleton<ISmsSender, LogSmsSender>();
         }
+
+        // Captured here rather than recomputed, so what Settings reports is exactly what the
+        // container resolved — the two can never drift apart.
+        var resolvedEmail = emailProvider;
+        var resolvedSms = smsProvider ?? "Log";
+        services.AddSingleton<WonderFleet.Application.Features.Notifications.IEmailProbe>(sp =>
+            new MessagingProbe(resolvedEmail, resolvedSms,
+                sp.GetRequiredService<IOptions<EmailOptions>>(),
+                sp.GetRequiredService<IOptions<SmsOptions>>()));
     }
 
     private static void AddIntegrations(IServiceCollection services, IConfiguration configuration)

@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IPortalService, PortalService>();
         services.AddScoped<IAlertAdminService, AlertAdminService>();
         services.AddScoped<INotificationFeedService, NotificationFeedService>();
+        services.AddScoped<IDeliveryDiagnostics, DeliveryDiagnostics>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IRouteAiService, RouteAiService>();

@@ -21,15 +21,20 @@ internal sealed class ResendApiEmailSender(HttpClient http, IOptions<EmailOption
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{o.ApiBaseUrl.TrimEnd('/')}/emails");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", o.ApiKey);
-        request.Content = JsonContent.Create(new Dictionary<string, object?>
+
+        // Optional fields are omitted rather than sent as null: an explicit "reply_to": null
+        // is not the same thing as "no reply-to" to a validating API, and a rejected payload
+        // would silently stop every message.
+        var payload = new Dictionary<string, object?>
         {
             ["from"] = o.From,
             ["to"] = new[] { message.To },
             ["subject"] = message.Subject,
             ["html"] = message.HtmlBody,
-            ["text"] = message.TextBody,
-            ["reply_to"] = o.ReplyTo,
-        });
+        };
+        if (!string.IsNullOrWhiteSpace(message.TextBody)) payload["text"] = message.TextBody;
+        if (!string.IsNullOrWhiteSpace(o.ReplyTo)) payload["reply_to"] = o.ReplyTo;
+        request.Content = JsonContent.Create(payload);
 
         using var response = await http.SendAsync(request, ct);
         var body = await response.Content.ReadAsStringAsync(ct);

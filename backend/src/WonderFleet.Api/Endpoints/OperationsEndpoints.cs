@@ -61,6 +61,12 @@ internal static class OperationsEndpoints
 
         group.MapGet("/unread-count", (INotificationFeedService service, CancellationToken ct) => service.UnreadAsync(ct));
 
+        // Delivery diagnostics: what email and SMS are configured as, and what the provider
+        // said about the most recent messages. Without this, a refused send is invisible.
+        group.MapGet("/deliveries", (IDeliveryDiagnostics service, CancellationToken ct) => service.GetAsync(ct));
+
+        group.MapPost("/test-email", (IDeliveryDiagnostics service, CancellationToken ct) => service.SendTestEmailAsync(ct));
+
         group.MapPost("/{id:guid}/read", async (Guid id, INotificationFeedService service, CancellationToken ct) =>
         {
             await service.MarkReadAsync(id, ct);

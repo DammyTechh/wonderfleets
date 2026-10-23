@@ -524,6 +524,38 @@ export interface RouteRecommendation {
   createdAt: string
 }
 
+export interface DeliveryRow {
+  id: string
+  channel: 'Email' | 'Sms' | string
+  recipient: string
+  subject?: string | null
+  templateKey: string
+  status: 'Pending' | 'Sending' | 'Sent' | 'Failed' | string
+  attempts: number
+  lastError?: string | null
+  createdAt: string
+  sentAt?: string | null
+}
+
+/** What email and SMS resolved to at start-up, and how recent sends actually went. */
+export interface DeliveryHealth {
+  emailProvider: string
+  smsProvider: string
+  from: string
+  emailConfigured: boolean
+  smsConfigured: boolean
+  pending: number
+  sent24h: number
+  failed24h: number
+  recent: DeliveryRow[]
+}
+
+export interface TestEmailResult {
+  queued: boolean
+  recipient: string
+  message: string
+}
+
 export interface ReportCatalogItem {
   type: string
   title: string

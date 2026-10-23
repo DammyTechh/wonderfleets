@@ -1,12 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Camera, Fuel, KeyRound, ShieldAlert, UserRound } from '@/components/icons'
+import { Camera, Fuel, KeyRound, Mail, ShieldAlert, UserRound } from '@/components/icons'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Avatar, Card, CardHeader, ErrorNote, Field, PageHeader, Spinner } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { dt, since } from '@/lib/format'
 import { useAuth } from '@/lib/auth'
-import { useFuelPrices } from '@/lib/queries'
+import { sendTestEmail, useDeliveryHealth, useFuelPrices } from '@/lib/queries'
 import type { AdminProfile } from '@/lib/types'
+import clsx from 'clsx'
 
 export default function Settings() {
   const { admin, setAdmin } = useAuth()
@@ -158,6 +159,7 @@ export default function Settings() {
           </form>
         </Card>
         <FuelPrices />
+        <MessageDelivery />
       </div>
     </>
   )
@@ -234,6 +236,123 @@ function FuelPrices() {
         ))}
       </div>
       {error && <ErrorNote message={error} />}
+    </Card>
+  )
+}
+
+/**
+ * Why a message did or did not arrive.
+ *
+ * Every send already stores the provider's own refusal, but nothing showed it, so a wrong
+ * key, an unverified sending domain and an application that never tried all looked the same
+ * from outside. The header states what the server resolved email and SMS to at start-up —
+ * "Log" means no key reached it and nothing is being sent at all — and the test button puts
+ * a real message through the same path an alert takes.
+ */
+function MessageDelivery() {
+  const health = useDeliveryHealth()
+  const [result, setResult] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
+  const [failure, setFailure] = useState<string | null>(null)
+
+  async function test() {
+    setSending(true)
+    setFailure(null)
+    setResult(null)
+    try {
+      setResult((await sendTestEmail()).message)
+      setTimeout(() => void health.refetch(), 4000)
+    } catch (error) {
+      setFailure(errorMessage(error))
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const data = health.data
+  const live = data?.emailConfigured ?? false
+
+  return (
+    <Card className="lg:col-span-2">
+      <CardHeader
+        title="Message delivery"
+        subtitle="How alerts leave the system, and what the provider said about recent ones."
+        action={
+          <button className="btn-secondary h-8 px-3 text-[13px]" disabled={sending} onClick={test}>
+            {sending ? <Spinner size={14} /> : <Mail size={14} />} Send test email
+          </button>
+        }
+      />
+
+      {data && (
+        <div className="grid grid-cols-2 gap-px border-b border-line bg-line sm:grid-cols-4">
+          {([
+            ['Email provider', data.emailProvider, live ? 'default' : 'warn'],
+            ['Sending as', data.from, 'default'],
+            ['Sent (24h)', String(data.sent24h), 'default'],
+            ['Failed (24h)', String(data.failed24h), data.failed24h > 0 ? 'warn' : 'default'],
+          ] as const).map(([term, value, tone]) => (
+            <div key={term} className="bg-surface px-4 py-3">
+              <p className="text-xs text-ink-faint">{term}</p>
+              <p className={clsx('truncate text-sm font-semibold', tone === 'warn' && 'text-warning-600')} title={value}>{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data && !live && (
+        <p className="border-b border-line bg-warning-50 px-5 py-3 text-[13px] text-ink-soft">
+          <span className="font-semibold text-ink">Nothing is being emailed.</span> The provider resolved to
+          {' '}<code className="font-mono text-xs">Log</code>, which happens when <code className="font-mono text-xs">Email__ApiKey</code>
+          {' '}is empty or missing on the server — messages are written to the log instead of sent. Set the key and redeploy.
+        </p>
+      )}
+
+      {result && <p className="border-b border-line px-5 py-3 text-[13px] text-ink-soft">{result}</p>}
+      {failure && <div className="px-5 pt-4"><ErrorNote message={failure} /></div>}
+
+      {data && data.recent.length === 0 ? (
+        <p className="px-5 py-8 text-center text-sm text-ink-faint">
+          Nothing has been queued yet. Send a test, or activate a partner — both send email.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px]">
+            <thead>
+              <tr>
+                <th className="th">To</th>
+                <th className="th">What</th>
+                <th className="th">Status</th>
+                <th className="th">Queued</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {(data?.recent ?? []).map((row) => (
+                <tr key={row.id}>
+                  <td className="td">
+                    <span className="block truncate font-medium">{row.recipient}</span>
+                    <span className="block text-xs text-ink-faint">{row.channel}</span>
+                  </td>
+                  <td className="td text-[13px] text-ink-soft">{row.subject ?? row.templateKey}</td>
+                  <td className="td">
+                    <span className={clsx('text-[13px] font-medium',
+                      row.status === 'Sent' && 'text-normal-600',
+                      row.status === 'Failed' && 'text-critical-600',
+                      row.status === 'Pending' && 'text-ink-soft')}>
+                      {row.status}{row.attempts > 1 ? ` · ${row.attempts} tries` : ''}
+                    </span>
+                    {/* The provider's own words: usually the whole answer. */}
+                    {row.lastError && (
+                      <span className="mt-0.5 block max-w-md break-words font-mono text-[11px] text-critical-600">{row.lastError}</span>
+                    )}
+                  </td>
+                  <td className="td whitespace-nowrap text-[13px] text-ink-soft">{since(row.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Card>
   )
 }

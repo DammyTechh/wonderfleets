@@ -408,6 +408,53 @@ de-duplicated.
 
 ---
 
+## Sharing a shipment with a partner
+
+Partners never get an account. The admin generates a temporary link, and whoever holds it
+sees a dashboard scoped to their own shipments until the trip ends.
+
+**To share:** Partners → Logistics partners → **Partner access**, or Agro-Processors →
+**Manage access**. Generate the link; the dialog shows the URL with a **Copy** button, and
+optionally emails it to the registered contact. **Copying and sending it yourself (WhatsApp,
+SMS, anything) works exactly the same** — the email is a convenience, not the mechanism.
+
+What each audience sees:
+
+| | Logistics partner | Agro-processor |
+|---|---|---|
+| Live map and positions | yes | yes |
+| Their vehicles, drivers, routes | yes | — |
+| Cargo temperature and humidity | **no** — deliberately withheld from the carrier | yes, with the trip's limits |
+
+The link is `https://wonderfleet.org/share#<token>`. The token sits after the `#` so it is
+never sent to a server: it stays out of access logs and out of the `Referer` header when the
+partner clicks away. It expires with the trip and can be revoked at any time.
+
+Anyone holding the link can see that shipment, so send it privately.
+
+---
+
+## When no email or SMS arrives
+
+**Settings → Message delivery** answers this without a log search. It shows the provider the
+server resolved at start-up, the address it sends as, and the last 25 messages with the
+provider's own words when one was refused. **Send test email** puts a real message through the
+same path an alert takes.
+
+The three things it distinguishes, which otherwise look identical from outside:
+
+| What you see | What it means |
+|---|---|
+| Email provider is **`Log`** | `Email__ApiKey` never reached the server, so messages are written to the log instead of sent. Set the key and redeploy. |
+| Status **Failed** with `Resend 403 … domain is not verified` | The domain in `Email__From` is not the one verified in Resend. These must match: verifying `wonderfleet.org` does not permit sending as `@ofeminiagrictech.com`. |
+| Status **Failed** with `Resend 401` | The API key is wrong or was revoked. |
+| Status stays **Pending** | The API is up but the dispatcher is not draining the outbox — check the service is running and the database is reachable. |
+
+The sending domain is the usual culprit. Resend will only send from a domain you have
+verified in *their* dashboard, so `Email__From` must use that exact domain.
+
+---
+
 ## When something fails
 
 | What you see | What it means | Fix |
@@ -537,7 +584,22 @@ so set that restriction before the key goes live. Vite bakes the value in at bui
 it in Vercel's **Production** environment and redeploy — editing it alone changes nothing.
 
 If the key is missing, rejected, or its referrer is blocked, the app quietly falls back to the
-coordinate grid rather than showing an empty panel.
+coordinate grid rather than showing an empty panel or Google's own error box.
+
+### `RefererNotAllowedMapError`
+
+Google names the exact URL it refused in the browser console. The usual cause is that the key
+allows the bare domain but the browser is on `www`, which Google treats as a different site.
+List every hostname that can serve the app:
+
+```
+https://wonderfleet.org/*
+https://www.wonderfleet.org/*
+https://*.vercel.app/*          # only if you want preview deployments to work
+```
+
+Restrictions take a few minutes to propagate. The same error also appears when billing is
+inactive or the Maps JavaScript API is not enabled on the project.
 
 ---
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { loadGoogleMaps, truckIcon } from '@/lib/googleMaps'
+import { loadGoogleMaps, onGoogleMapsAuthFailure, truckIcon } from '@/lib/googleMaps'
 import { humidity as humidityText, since, temperature as temperatureText } from '@/lib/format'
 import type { MapMarker, TrackPoint } from '@/lib/types'
 
@@ -58,6 +58,10 @@ export function GoogleFleetMap({ markers, trail, height, onSelect, onUnavailable
   const info = useRef<google.maps.InfoWindow | null>(null)
   const framed = useRef(false)
   const [ready, setReady] = useState(false)
+
+  // A rejected key surfaces here, not as a load error, so the caller can swap in the grid
+  // instead of leaving Google's own error panel on the page.
+  useEffect(() => onGoogleMapsAuthFailure((reason) => onUnavailable?.(reason)), [onUnavailable])
 
   // --- create the map once
   useEffect(() => {

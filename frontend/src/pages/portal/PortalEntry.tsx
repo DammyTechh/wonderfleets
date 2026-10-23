@@ -5,8 +5,27 @@ import { errorMessage, portalApi, tokens } from '@/lib/api'
 import type { PortalSession } from '@/lib/types'
 
 /**
- * Landing page for a share link (/track?t=…). It exchanges the link token for a short-lived
- * portal session — no account, no password — and routes to the dashboard for that audience.
+ * Reads the token out of a share link, wherever it was put.
+ *
+ * The API issues links as `/share#<token>`: a URL fragment is never sent to a server, so the
+ * token stays out of access logs and out of the Referer header when the partner follows a
+ * link onward. Older links carry it as `?t=` instead, and both must keep working — a partner
+ * holding a link that no longer opens has no way to ask for a new one.
+ */
+function readToken(search: URLSearchParams, hash: string): string | null {
+  const fromQuery = search.get('t') ?? search.get('token')
+  if (fromQuery) return fromQuery
+
+  const raw = hash.replace(/^#/, '')
+  if (!raw) return null
+  // Either "#<token>" or "#t=<token>".
+  if (raw.includes('=')) return new URLSearchParams(raw).get('t') ?? new URLSearchParams(raw).get('token')
+  return decodeURIComponent(raw)
+}
+
+/**
+ * Landing page for a share link. It exchanges the link token for a short-lived portal
+ * session — no account, no password — and routes to the dashboard for that audience.
  */
 export default function PortalEntry() {
   const [params] = useSearchParams()
@@ -14,10 +33,15 @@ export default function PortalEntry() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const token = params.get('t') ?? params.get('token')
+    const token = readToken(params, window.location.hash)
     if (!token) {
-      setError('This link is incomplete. Please use the full link from your email or SMS.')
+      setError('This link is incomplete. Please use the full link from your email or message.')
       return
+    }
+    // Take the token out of the address bar once it has been read, so it is not left in
+    // view, in the browser history, or in anything the partner later copies and pastes.
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
     let cancelled = false
     ;(async () => {

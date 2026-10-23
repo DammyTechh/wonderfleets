@@ -42,3 +42,24 @@ public sealed class TwilioOptions
     public string? FromNumber { get; set; }
     public string? MessagingServiceSid { get; set; }
 }
+
+/// <summary>
+/// Reports the messaging configuration the application actually ended up with.
+///
+/// The provider is resolved at start-up and silently degrades to "Log" when no key is
+/// present — which is the right default for a demo, but indistinguishable from a broken
+/// integration once deployed. Surfacing the resolved value turns "no email arrived" into
+/// "the provider is Log, so nothing was ever sent".
+/// </summary>
+internal sealed class MessagingProbe(
+    string emailProvider, string smsProvider,
+    Microsoft.Extensions.Options.IOptions<EmailOptions> email,
+    Microsoft.Extensions.Options.IOptions<SmsOptions> sms) : WonderFleet.Application.Features.Notifications.IEmailProbe
+{
+    public string EmailProvider => emailProvider;
+    public string SmsProvider => smsProvider;
+    public string From => email.Value.From;
+    public bool EmailConfigured => !string.Equals(emailProvider, "Log", StringComparison.OrdinalIgnoreCase);
+    public bool SmsConfigured => !string.Equals(smsProvider, "Log", StringComparison.OrdinalIgnoreCase)
+        && (!string.IsNullOrWhiteSpace(sms.Value.Twilio.AccountSid) || !string.IsNullOrWhiteSpace(sms.Value.Termii.ApiKey));
+}
