@@ -37,7 +37,7 @@ export default function LogisticsPortal() {
                 : 'Waiting for the first fix'
             }
           />
-          {tracking.isLoading ? <Loading rows={3} /> : <FleetMap markers={tracking.data?.markers ?? []} height={360} />}
+          {tracking.isLoading ? <Loading rows={3} /> : <FleetMap markers={tracking.data?.markers ?? []} height={360} expandable />}
           {(tracking.data?.actionAlerts.length ?? 0) > 0 && (
             <ul className="divide-y divide-line border-t border-line">
               {tracking.data!.actionAlerts.slice(0, 3).map((alert) => (

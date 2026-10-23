@@ -96,7 +96,7 @@ export default function Dashboard() {
             title="Live fleet tracking"
             action={<Link to="/tracking" className="btn-secondary h-8 px-3 text-[13px]">Open tracking</Link>}
           />
-          <FleetMap markers={data.markers} height={360} expandable counts={data.statusCounts} />
+          <FleetMap markers={data.markers} height={360} expandable trail counts={data.statusCounts} />
           <p className="flex items-center gap-2 border-t border-line px-5 py-2.5 text-[13px] text-ink-soft">
             <Radio size={15} className="text-brand-500" />
             {data.sync.message}

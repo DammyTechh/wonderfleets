@@ -396,14 +396,17 @@ function MapCanvas({ markers, bounds, trail, height, active, onSelect, onBoundsC
   )
 }
 
-export function FleetMap({ markers, height = 380, expandable = false, counts }: {
+export function FleetMap({ markers, height = 380, expandable = false, trail = false, counts }: {
   markers: MapMarker[]
   height?: number
-  /**
-   * Admin screens only. Panning, zooming and the expanded view all belong to the admin
-   * app; a partner's tracking link gets a fixed view and cannot call the admin API.
-   */
+  /** Shows the Full view control, with panning and zooming. Safe on a partner portal. */
   expandable?: boolean
+  /**
+   * Draws where the followed vehicle has been. Admin screens only: the breadcrumb comes
+   * from the admin tracking endpoint, which a partner's link is not authorised to call —
+   * asking for it there would only produce a 401 behind the scenes.
+   */
+  trail?: boolean
   counts?: StatusCounts
 }) {
   const [active, setActive] = useState<MapMarker | null>(null)
@@ -424,7 +427,7 @@ export function FleetMap({ markers, height = 380, expandable = false, counts }: 
   // With one vehicle reporting, its trail is the only one worth drawing; with several,
   // follow whichever the operator picked.
   const followed = active ?? (plotted.length === 1 ? plotted[0] : null)
-  const track = useTripTrack(followed?.tripId, 12, expandable && expanded)
+  const track = useTripTrack(followed?.tripId, 12, trail && expanded)
   const points = track.data?.track ?? []
 
   const [inlineView, setInlineView] = useState<Bounds>(NIGERIA)
@@ -490,9 +493,9 @@ export function FleetMap({ markers, height = 380, expandable = false, counts }: 
         open={expanded}
         title={followed ? `${followed.fleetNumber} · ${followed.route}` : 'Fleet positions'}
         description={
-          followed
+          trail && followed
             ? 'Zoomed to this vehicle, with the last 12 hours of fixes behind it. Drag to pan; it keeps updating as readings arrive.'
-            : 'Zoomed to the vehicles reporting. Select one to draw where it has been.'
+            : 'Zoomed to the vehicles reporting. Drag to pan; it keeps updating as readings arrive.'
         }
         width="max-w-6xl"
         bodyClassName="p-0"
@@ -527,7 +530,7 @@ export function FleetMap({ markers, height = 380, expandable = false, counts }: 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-2.5 text-xs text-ink-soft">
           <span className="flex items-center gap-2">
             {track.isFetching ? <Spinner size={13} /> : <MapPin size={13} className="text-ink-faint" />}
-            {followed
+            {trail && followed
               ? points.length > 1
                 ? `${points.length} fixes over the last 12 hours`
                 : track.isFetching ? 'Loading the trail…' : 'Only one fix so far — the line appears as the vehicle moves'

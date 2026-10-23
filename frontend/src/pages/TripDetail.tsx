@@ -121,6 +121,7 @@ export default function TripDetailPage() {
           <FleetMap
             height={420}
             expandable
+            trail
             markers={
               trip.latitude != null && trip.longitude != null
                 ? [

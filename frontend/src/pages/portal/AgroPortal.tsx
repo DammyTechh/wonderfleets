@@ -113,6 +113,7 @@ export default function AgroPortal() {
               <FleetMap
                 markers={(tracking.data?.markers ?? []).filter((marker) => !activeTripId || marker.tripId === activeTripId)}
                 height={340}
+                expandable
               />
             </Card>
 

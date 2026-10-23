@@ -31,7 +31,7 @@ export default function Tracking() {
             subtitle={`${markers.length} vehicle${markers.length === 1 ? '' : 's'} reporting`}
             action={<span className="tabular text-[13px] text-ink-soft">{watLabel()}</span>}
           />
-          <FleetMap markers={markers} height={520} expandable counts={statusCounts} />
+          <FleetMap markers={markers} height={520} expandable trail counts={statusCounts} />
         </Card>
 
         <div className="space-y-4">
