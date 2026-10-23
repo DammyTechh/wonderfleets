@@ -19,11 +19,12 @@ public static class EmailTemplates
     public const string PasswordChanged = "password-changed";
     public const string PartnerOnboarded = "partner-onboarded";
     public const string PartnerStatusChanged = "partner-status-changed";
+    public const string TestEmail = "test-email";
 
     public static readonly IReadOnlyList<string> All =
     [
         CriticalAlert, AlertResolved, ShareLinkLogistics, ShareLinkAgroProcessor, TripDispatched,
-        TripDelivered, DeliveryDelayed, PasswordChanged, PartnerOnboarded, PartnerStatusChanged,
+        TripDelivered, DeliveryDelayed, PasswordChanged, PartnerOnboarded, PartnerStatusChanged, TestEmail,
     ];
 }
 

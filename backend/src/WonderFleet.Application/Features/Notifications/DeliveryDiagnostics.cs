@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using WonderFleet.Application.Common.Interfaces;
-using WonderFleet.Application.Common.Options;
 using WonderFleet.Domain.Enums;
 
 namespace WonderFleet.Application.Features.Notifications;
@@ -37,19 +35,29 @@ internal sealed class DeliveryDiagnostics(
     INotificationComposer notify,
     ICurrentActor actor,
     IClock clock,
-    IEmailProbe probe,
-    IOptions<AppOptions> app) : IDeliveryDiagnostics
+    IEmailProbe probe) : IDeliveryDiagnostics
 {
     public async Task<DeliveryHealthDto> GetAsync(CancellationToken ct)
     {
         var since = clock.UtcNow.AddHours(-24);
-        var recent = await db.NotificationDeliveries.AsNoTracking()
+        // The columns are selected as they are and the enums turned into text afterwards:
+        // translating ToString() inside the query is not guaranteed, and the rendered body is
+        // deliberately left behind — it is large HTML that nothing here displays.
+        var rows = await db.NotificationDeliveries.AsNoTracking()
             .OrderByDescending(d => d.CreatedAt)
             .Take(25)
+            .Select(d => new
+            {
+                d.Id, d.Channel, d.Recipient, d.Subject, d.TemplateKey,
+                d.Status, d.Attempts, d.LastError, d.CreatedAt, d.SentAt,
+            })
+            .ToListAsync(ct);
+
+        var recent = rows
             .Select(d => new DeliveryRowDto(
                 d.Id, d.Channel.ToString(), d.Recipient, d.Subject, d.TemplateKey,
                 d.Status.ToString(), d.Attempts, d.LastError, d.CreatedAt, d.SentAt))
-            .ToListAsync(ct);
+            .ToList();
 
         var pending = await db.NotificationDeliveries.CountAsync(d => d.Status == DeliveryStatus.Pending, ct);
         var sent = await db.NotificationDeliveries.CountAsync(d => d.Status == DeliveryStatus.Sent && d.SentAt >= since, ct);
@@ -69,14 +77,11 @@ internal sealed class DeliveryDiagnostics(
         var admin = id is null ? null : await db.AdminUsers.FirstOrDefaultAsync(a => a.Id == id, ct);
         if (admin is null) return new TestEmailResultDto(false, "", "No signed-in administrator to send to.");
 
-        notify.Email(admin.Email, EmailTemplates.PasswordChanged, new Dictionary<string, string?>
+        notify.Email(admin.Email, EmailTemplates.TestEmail, new Dictionary<string, string?>
         {
-            ["Name"] = admin.Name,
-            ["Subject"] = "WonderFleet test email",
-            ["Heading"] = "Email delivery is working",
-            ["Message"] = "This is a test from WonderFleet Settings. If it reached you, alerts will too.",
-            ["ActionUrl"] = app.Value.FrontendBaseUrl,
-            ["When"] = clock.UtcNow.ToString("u"),
+            ["Name"] = admin.FullName,
+            ["SentFrom"] = probe.From,
+            ["RequestedAt"] = clock.UtcNow.ToString("u"),
         });
         await db.SaveChangesAsync(ct);
 

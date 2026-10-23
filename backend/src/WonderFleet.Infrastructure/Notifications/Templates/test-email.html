@@ -1,0 +1,14 @@
+<!-- subject: WonderFleet email delivery test -->
+<h1 style="margin:0 0 12px;font-size:20px;line-height:28px;color:#3f6212;">Email delivery is working</h1>
+<p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#1f2a24;">Hello {{Name}}, this is a test sent from WonderFleet Settings. It travelled the same path as a cargo alert, so alerts will reach you here too.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e6ece9;border-bottom:1px solid #e6ece9;margin-bottom:18px;">
+              {{#SentFrom}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Sent from</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{SentFrom}}</td>
+              </tr>{{/SentFrom}}
+              {{#RequestedAt}}<tr>
+                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Requested at</td>
+                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{RequestedAt}}</td>
+              </tr>{{/RequestedAt}}
+</table>
+<p style="margin:0;font-size:13px;line-height:20px;color:#5c6b63;">No action is needed. If this landed in spam, add the sending address to your contacts so cargo alerts are not missed.</p>
