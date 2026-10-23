@@ -1,6 +1,19 @@
 import axios, { AxiosError, type AxiosInstance } from 'axios'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? ''
+/**
+ * The API origin, baked in at build time by Vite.
+ *
+ * Every request is `${baseURL}/api/v1/...`, so the variable must be the bare origin —
+ * https://api.wonderfleet.org. The three ways people reasonably write it instead all
+ * used to produce a 404 that looked like a broken route rather than a typo, so they are
+ * normalised here: a trailing slash ("…org/") made a double slash, and an already
+ * included "/api/v1" made it appear twice. Empty is still valid: it means same-origin,
+ * which is what local development uses through the Vite proxy.
+ */
+const baseURL = (import.meta.env.VITE_API_BASE_URL ?? '')
+  .trim()
+  .replace(/\/+$/, '')
+  .replace(/\/api\/v1$/i, '')
 
 /** Tokens live in memory; the refresh token is an HttpOnly cookie set by the API. */
 let accessToken: string | null = null
