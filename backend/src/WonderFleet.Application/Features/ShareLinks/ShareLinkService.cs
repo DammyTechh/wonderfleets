@@ -135,6 +135,11 @@ internal sealed class ShareLinkService(
         var url = $"{app.Value.FrontendBaseUrl.TrimEnd('/')}/share#{raw}";
         var fleetList = string.Join(", ", trips.Select(t => $"{t.Vehicle?.FleetNumber} ({t.OriginLabel} → {t.DestinationLabel})"));
 
+        // With a single shipment the email can name the route, the vehicle and the arrival
+        // instead of only counting shipments — and the subject line gets something short and
+        // recognisable rather than the whole vehicle list.
+        var only = trips.Count == 1 ? trips[0] : null;
+
         var emailQueued = false;
         if (request.SendEmail && link.RecipientEmail is not null)
         {
@@ -147,6 +152,10 @@ internal sealed class ShareLinkService(
                     ["ShareUrl"] = url,
                     ["ExpiresAt"] = Wat(expiresAt),
                     ["TripCount"] = trips.Count.ToString(),
+                    ["Route"] = only is null ? null : $"{only.OriginLabel} → {only.DestinationLabel}",
+                    ["FleetNumber"] = only?.Vehicle?.FleetNumber,
+                    ["DestinationLabel"] = only?.DestinationLabel,
+                    ["ExpectedArrival"] = only is null ? null : Wat(only.ExpectedArrival),
                     ["FleetList"] = fleetList,
                 });
             emailQueued = true;

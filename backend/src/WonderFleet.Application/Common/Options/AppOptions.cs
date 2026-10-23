@@ -7,7 +7,9 @@ public sealed class AppOptions
     public string FrontendBaseUrl { get; set; } = "http://localhost:5173";
     public string PublicApiBaseUrl { get; set; } = "http://localhost:8080";
     public string SupportEmail { get; set; } = "ofeminiagrictech@gmail.com";
-    public string LogoUrl { get; set; } = "";
+    /// Absolute URL of the logo used in emails. It must be reachable without signing in,
+    /// which is why it points at the public site rather than at the API.
+    public string LogoUrl { get; set; } = "https://wonderfleet.org/wonderfleet-logo.png";
     public string TimeZoneId { get; set; } = "Africa/Lagos";
     /// Browser origins allowed to call the API (defaults to FrontendBaseUrl).
     public string[] AllowedOrigins { get; set; } = [];

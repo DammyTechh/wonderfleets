@@ -51,6 +51,10 @@ services:
         value: https://api.wonderfleet.org
       - key: App__FrontendBaseUrl
         value: https://wonderfleet.org
+      # Shown at the top of every email. Served by the public site, so recipients can load
+      # it without signing in; keep it in step with the frontend's public/ folder.
+      - key: App__LogoUrl
+        value: https://wonderfleet.org/wonderfleet-logo.png
       # Origins the browser may call the API from. The browser sends the origin it is
       # actually on, so every hostname that can serve the app needs to be listed:
       # the root, the www redirect, and the onrender.com address while DNS propagates.

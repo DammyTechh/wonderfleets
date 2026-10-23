@@ -1,58 +1,69 @@
-<!-- subject: Shipment {{TripCode}} dispatched — {{Route}} -->
-<h1 style="margin:0 0 12px;font-size:20px;line-height:28px;color:#0F5132;">Shipment dispatched</h1>
-<p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#1f2a24;">Hello {{Name}}, {{TripCode}} is on the road. WonderFleet is monitoring temperature, humidity and position continuously.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e6ece9;border-bottom:1px solid #e6ece9;margin-bottom:18px;">
-              {{#TripCode}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Shipment</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{TripCode}}</td>
-              </tr>{{/TripCode}}
-              {{#FleetNumber}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Fleet</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{FleetNumber}}</td>
-              </tr>{{/FleetNumber}}
-              {{#Route}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Route</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Route}}</td>
-              </tr>{{/Route}}
-              {{#Produce}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Produce</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Produce}}</td>
-              </tr>{{/Produce}}
-              {{#Weight}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Estimated weight</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Weight}}</td>
-              </tr>{{/Weight}}
-              {{#PartnerName}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Logistics partner</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{PartnerName}}</td>
-              </tr>{{/PartnerName}}
-              {{#ProcessorName}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Agro-processor</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{ProcessorName}}</td>
-              </tr>{{/ProcessorName}}
-              {{#DriverName}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Driver</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{DriverName}}</td>
-              </tr>{{/DriverName}}
-              {{#TemperatureRange}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Temperature range</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{TemperatureRange}}</td>
-              </tr>{{/TemperatureRange}}
-              {{#HumidityRange}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Humidity range</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{HumidityRange}}</td>
-              </tr>{{/HumidityRange}}
-              {{#StartedAt}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Departed</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{StartedAt}}</td>
-              </tr>{{/StartedAt}}
-              {{#ExpectedArrival}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Expected arrival</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{ExpectedArrival}}</td>
-              </tr>{{/ExpectedArrival}}
+<!-- subject: Shipment {{TripCode}} dispatched{{#Route}} — {{Route}}{{/Route}} -->
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+  <tr>
+    <td style="width:40px;padding:0;vertical-align:top;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="40"><tr>
+        <td align="center" height="40" style="width:40px;height:40px;background:#F2F6EE;border-radius:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:19px;line-height:40px;font-weight:700;color:#63883C;">&rarr;</td>
+      </tr></table>
+    </td>
+    <td style="padding:0 0 0 14px;vertical-align:top;">
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:11px;line-height:16px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#63883C;">On the road</div>
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:19px;line-height:27px;font-weight:700;color:#18203C;padding-top:2px;">Shipment {{TripCode}} has been dispatched</div>
+    </td>
+  </tr>
 </table>
-{{#ActionUrl}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
-  <tr><td style="background:#0F5132;border-radius:8px;">
-    <a href="{{ActionUrl}}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">Track this shipment</a>
-  </td></tr>
+<p style="margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:24px;color:#18203C;">Hello {{Name}}, the load has left the pickup point. Live tracking and cargo monitoring are active for the whole journey.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;border-top:1px solid #DEE4EA;">
+  {{#Produce}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Produce</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{Produce}}</td>
+  </tr>{{/Produce}}
+  {{#Weight}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Weight</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{Weight}}</td>
+  </tr>{{/Weight}}
+  {{#Route}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Route</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{Route}}</td>
+  </tr>{{/Route}}
+  {{#FleetNumber}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Fleet</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{FleetNumber}}</td>
+  </tr>{{/FleetNumber}}
+  {{#DriverName}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Driver</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{DriverName}}</td>
+  </tr>{{/DriverName}}
+  {{#StartedAt}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Departed</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{StartedAt}}</td>
+  </tr>{{/StartedAt}}
+  {{#ExpectedArrival}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Expected arrival</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{ExpectedArrival}}</td>
+  </tr>{{/ExpectedArrival}}
+  {{#TemperatureRange}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Temperature limits</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{TemperatureRange}}</td>
+  </tr>{{/TemperatureRange}}
+  {{#HumidityRange}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Humidity limits</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{HumidityRange}}</td>
+  </tr>{{/HumidityRange}}
+  {{#PartnerName}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Carrier</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{PartnerName}}</td>
+  </tr>{{/PartnerName}}
+  {{#ProcessorName}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Processor</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{ProcessorName}}</td>
+  </tr>{{/ProcessorName}}
+</table>
+{{#ActionUrl}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+  <tr>
+    <td align="center" bgcolor="#63883C" style="border-radius:10px;">
+      <a href="{{ActionUrl}}" style="display:inline-block;padding:14px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">Follow the shipment</a>
+    </td>
+  </tr>
 </table>{{/ActionUrl}}
+<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:20px;color:#687C88;">You will be alerted the moment conditions move outside the limits above.</p>

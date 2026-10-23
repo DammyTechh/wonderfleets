@@ -45,6 +45,13 @@ internal sealed partial class EmailTemplateRenderer : IEmailTemplateRenderer
     [GeneratedRegex(@"\n{3,}")]
     private static partial Regex BlankLinePattern();
 
+    [GeneratedRegex("<a[^>]*href=\"(?<url>[^\"]+)\"[^>]*>(?<label>.*?)</a>",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex AnchorPattern();
+
+    [GeneratedRegex(@"[ \t]{2,}")]
+    private static partial Regex RunOfSpaces();
+
     public RenderedEmail Render(string templateKey, IReadOnlyDictionary<string, string?> model)
     {
         if (!_templates.TryGetValue(templateKey, out var template))
@@ -79,7 +86,13 @@ internal sealed partial class EmailTemplateRenderer : IEmailTemplateRenderer
     /// Plain-text alternative so the message is not spam-scored as HTML-only.
     internal static string ToText(string html)
     {
-        var text = html
+        // The label alone is useless without its target: a plain-text reader given
+        // "Open fleet tracking" has nothing to open, which for a tracking link means the
+        // message failed. Anchors become "label: url" before the tags are stripped.
+        var text = AnchorPattern().Replace(html, m =>
+            $"{TagPattern().Replace(m.Groups["label"].Value, string.Empty).Trim()}: {m.Groups["url"].Value}");
+
+        text = text
             .Replace("</p>", "\n\n", StringComparison.OrdinalIgnoreCase)
             .Replace("</tr>", "\n", StringComparison.OrdinalIgnoreCase)
             .Replace("</td><td", " : <td", StringComparison.OrdinalIgnoreCase)
@@ -89,7 +102,7 @@ internal sealed partial class EmailTemplateRenderer : IEmailTemplateRenderer
         text = TagPattern().Replace(text, string.Empty);
         text = WebUtility.HtmlDecode(text);
 
-        var lines = text.Split('\n').Select(l => l.Trim());
+        var lines = text.Split('\n').Select(l => RunOfSpaces().Replace(l, " ").Trim());
         return BlankLinePattern().Replace(string.Join('\n', lines), "\n\n").Trim();
     }
 

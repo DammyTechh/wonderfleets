@@ -1,33 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="color-scheme" content="light" />
   <title>WonderFleet</title>
+  <!--
+    Email, not the web: no external stylesheet, no web font, no flexbox. Outlook renders
+    through Word, so the whole thing is tables with inline styles. The font stack falls back
+    through the system faces every platform already has; IBM Plex, which the app uses, is not
+    reliably loadable in a mail client and a failed web font is worse than a good fallback.
+  -->
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td, a { font-family: 'Segoe UI', Arial, sans-serif !important; }
+  </style>
+  <![endif]-->
 </head>
-<body style="margin:0;padding:0;background:#f4f6f5;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1f2a24;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f5;padding:24px 12px;">
+<body style="margin:0;padding:0;background:#F0F6FA;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F0F6FA;">
     <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(16,32,24,0.08);">
+      <td align="center" style="padding:28px 14px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+
+          <!-- Logo sits on white: the mark is full colour and reads badly on a dark band.
+               If the recipient blocks images, the styled alt text carries the brand instead. -->
           <tr>
-            <td style="background:#0F5132;padding:20px 28px;">
-              <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:0.3px;">WonderFleet</span>
-              <span style="color:#A7D8B8;font-size:12px;display:block;margin-top:2px;">Heat-aware agri-logistics monitoring &middot; OfeminiAgricTech</span>
+            <td style="padding:0 4px 14px;">
+              <img src="{{LogoUrl}}" width="168" height="60" alt="WonderFleet"
+                   style="display:block;width:168px;max-width:168px;height:auto;border:0;outline:none;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;font-size:21px;font-weight:700;color:#63883C;" />
             </td>
           </tr>
+
           <tr>
-            <td style="padding:28px;">
-              {{Content}}
+            <td style="background:#ffffff;border:1px solid #DEE4EA;border-radius:14px;overflow:hidden;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <!-- A single brand rule instead of a heavy coloured header: the content is
+                     what matters, and the panel stays light enough to read on a phone. -->
+                <tr><td style="height:4px;background:#63883C;font-size:0;line-height:0;">&nbsp;</td></tr>
+                <tr>
+                  <td style="padding:30px 32px 32px;">
+                    {{Content}}
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
+
           <tr>
-            <td style="background:#f7faf8;padding:18px 28px;color:#5c6b63;font-size:12px;line-height:18px;">
-              You are receiving this message because your organisation is part of a WonderFleet shipment.
-              <br />&copy; Ofemini Global Limited. This is an automated message &mdash; please do not reply.
+            <td style="padding:18px 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:19px;color:#98A4AC;">
+              <strong style="color:#687C88;">WonderFleet</strong> &mdash; heat-aware agri-logistics monitoring by OfeminiAgricTech.<br />
+              You are receiving this because your organisation is part of a WonderFleet shipment.
+              This is an automated message; please do not reply.<br />
+              <span style="color:#B6C0C8;">&copy; Ofemini Global Limited</span>
             </td>
           </tr>
+
         </table>
+
       </td>
     </tr>
   </table>

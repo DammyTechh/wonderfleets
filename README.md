@@ -434,6 +434,37 @@ Anyone holding the link can see that shipment, so send it privately.
 
 ---
 
+## Email templates
+
+The eleven transactional templates live in
+`backend/src/WonderFleet.Infrastructure/Notifications/Templates/` and are embedded in the
+assembly by a wildcard, so adding a file is enough — no csproj edit.
+
+They are generated from one spec, `_generate.py`, so all eleven share a layout, a type scale
+and a colour vocabulary. Edit the spec and re-run it rather than editing eleven files by hand:
+
+```bash
+python3 backend/src/WonderFleet.Infrastructure/Notifications/Templates/_generate.py
+```
+
+Rules that email imposes, and that the templates follow:
+
+- **Tables and inline styles only.** Outlook renders through Word; there is no flexbox, no grid.
+- **No web fonts.** The app's IBM Plex cannot be loaded in a mail client, so the stack falls
+  back through the system faces every platform has.
+- **Icons are drawn, not fetched.** Most clients block remote images by default, so status is
+  carried by a coloured badge with a glyph. Only the logo is an image, and its `alt` text is
+  styled so the brand survives with images off.
+- **Every row is conditional.** `{{#Key}}…{{/Key}}` hides a row whose value is absent, so one
+  template serves callers that supply different amounts of detail.
+- **Subject tails are conditional too**, or a caller that omits a route leaves
+  `Your WonderFleet tracking link —` dangling in the inbox.
+
+`{{LogoUrl}}` comes from `App__LogoUrl` and points at the public site, so recipients can load
+it without signing in.
+
+---
+
 ## When no email or SMS arrives
 
 **Settings → Message delivery** answers this without a log search. It shows the provider the

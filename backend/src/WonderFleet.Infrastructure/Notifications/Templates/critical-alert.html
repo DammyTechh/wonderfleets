@@ -1,47 +1,57 @@
-<!-- subject: [Critical] {{AlertTitle}} — {{TripCode}} -->
-<h1 style="margin:0 0 12px;font-size:20px;line-height:28px;color:#B42318;">Critical alert on {{TripCode}}</h1>
-<p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#1f2a24;">Hello {{Name}}, WonderFleet detected a condition that puts the cargo at risk. Please act now.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e6ece9;border-bottom:1px solid #e6ece9;margin-bottom:18px;">
-              {{#AlertTitle}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Alert</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{AlertTitle}}</td>
-              </tr>{{/AlertTitle}}
-              {{#TriggeredAt}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Detected</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{TriggeredAt}}</td>
-              </tr>{{/TriggeredAt}}
-              {{#Reading}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Reading</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Reading}}</td>
-              </tr>{{/Reading}}
-              {{#AllowedRange}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Allowed range</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{AllowedRange}}</td>
-              </tr>{{/AllowedRange}}
-              {{#TripCode}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Shipment</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{TripCode}}</td>
-              </tr>{{/TripCode}}
-              {{#FleetNumber}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Fleet</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{FleetNumber}}</td>
-              </tr>{{/FleetNumber}}
-              {{#Route}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Route</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{Route}}</td>
-              </tr>{{/Route}}
-              {{#DeviceSerial}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Device</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{DeviceSerial}}</td>
-              </tr>{{/DeviceSerial}}
-              {{#DriverName}}<tr>
-                <td style="padding:6px 0;color:#5c6b63;font-size:13px;width:44%;">Driver</td>
-                <td style="padding:6px 0;color:#1f2a24;font-size:13px;font-weight:600;">{{DriverName}}</td>
-              </tr>{{/DriverName}}
+<!-- subject: [Critical] {{AlertTitle}}{{#TripCode}} — {{TripCode}}{{/TripCode}} -->
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+  <tr>
+    <td style="width:40px;padding:0;vertical-align:top;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="40"><tr>
+        <td align="center" height="40" style="width:40px;height:40px;background:#FBEEEE;border-radius:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:19px;line-height:40px;font-weight:700;color:#C4403C;">!</td>
+      </tr></table>
+    </td>
+    <td style="padding:0 0 0 14px;vertical-align:top;">
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:11px;line-height:16px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#C4403C;">Critical alert</div>
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:19px;line-height:27px;font-weight:700;color:#18203C;padding-top:2px;">{{AlertTitle}}</div>
+    </td>
+  </tr>
 </table>
-{{#ActionUrl}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
-  <tr><td style="background:#B42318;border-radius:8px;">
-    <a href="{{ActionUrl}}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">Open live tracking</a>
-  </td></tr>
+<p style="margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:24px;color:#18203C;">Hello {{Name}}, WonderFleet detected a condition that puts the cargo at risk. The reading is outside the limits set for this shipment.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;border-top:1px solid #DEE4EA;">
+  {{#Reading}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Reading</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{Reading}}</td>
+  </tr>{{/Reading}}
+  {{#AllowedRange}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Allowed range</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{AllowedRange}}</td>
+  </tr>{{/AllowedRange}}
+  {{#TriggeredAt}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Detected</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{TriggeredAt}}</td>
+  </tr>{{/TriggeredAt}}
+  {{#TripCode}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Shipment</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{TripCode}}</td>
+  </tr>{{/TripCode}}
+  {{#FleetNumber}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Fleet</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{FleetNumber}}</td>
+  </tr>{{/FleetNumber}}
+  {{#Route}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Route</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{Route}}</td>
+  </tr>{{/Route}}
+  {{#DriverName}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Driver</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{DriverName}}</td>
+  </tr>{{/DriverName}}
+  {{#DeviceSerial}}<tr>
+    <td style="padding:10px 12px 10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:19px;color:#687C88;width:40%;vertical-align:top;">Device</td>
+    <td style="padding:10px 0;border-bottom:1px solid #EFF3F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;line-height:20px;font-weight:600;color:#18203C;vertical-align:top;">{{DeviceSerial}}</td>
+  </tr>{{/DeviceSerial}}
+</table>
+{{#ActionUrl}}<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+  <tr>
+    <td align="center" bgcolor="#C4403C" style="border-radius:10px;">
+      <a href="{{ActionUrl}}" style="display:inline-block;padding:14px 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">Open live tracking</a>
+    </td>
+  </tr>
 </table>{{/ActionUrl}}
-<p style="margin:0;font-size:13px;line-height:20px;color:#5c6b63;">{{Message}}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;"><tr><td style="background:#FBEEEE;border-left:3px solid #C4403C;padding:12px 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:13px;line-height:20px;color:#18203C;">{{Message}}</td></tr></table>
