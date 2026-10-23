@@ -143,6 +143,12 @@ services:
       # Baked into the built files, so it must be the public API hostname.
       - key: VITE_API_BASE_URL
         value: https://api.wonderfleet.org
+      # Optional: real Google road and satellite tiles instead of the coordinate grid.
+      # This is a SEPARATE key from Google__ApiKey above — it ships inside the built
+      # JavaScript, so it needs the Maps JavaScript API enabled and an HTTP referrer
+      # restriction (wonderfleet.org/*), not an API-only restriction. Blank is fine.
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        sync: false
     routes:
       # Single-page app: every path is served by index.html so a deep link such as
       # /devices works on a hard refresh.

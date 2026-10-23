@@ -203,7 +203,13 @@ export interface Thresholds {
   maxHumidity: number
 }
 
-export interface TripDetail extends TripSummary {
+/**
+ * The detail endpoint returns full produce records, while the list endpoint returns names
+ * only — so this deliberately replaces the inherited `produce` rather than widening it.
+ * Rendering the objects as text used to print "[object Object]".
+ */
+export interface TripDetail extends Omit<TripSummary, 'produce'> {
+  produce: ProduceType[]
   vehicleId: string
   partnerId: string
   partnerPhone: string

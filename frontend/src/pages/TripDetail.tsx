@@ -141,7 +141,7 @@ export default function TripDetailPage() {
           <CardHeader title="Shipment" action={<StatusChip status={trip.status} />} />
           <dl className="divide-y divide-line text-sm">
             {[
-              ['Produce', trip.produce.join(', ') || '—'],
+              ['Produce', trip.produce.map((item) => item.name).join(', ') || '—'],
               ['Weight', tonnes(trip.estimatedWeightTonnes)],
               ['Packaging', trip.packagingType ?? '—'],
               ['Pickup', trip.pickupAddress],

@@ -31,6 +31,35 @@ public static class Polyline
         return result;
     }
 
+    /// The inverse of Decode, so a route WonderFleet works out for itself travels the same
+    /// path through the system as one returned by the Routes API.
+    public static string Encode(IReadOnlyList<GeoPoint> points)
+    {
+        var builder = new System.Text.StringBuilder();
+        int lastLat = 0, lastLng = 0;
+        foreach (var point in points)
+        {
+            var lat = (int)Math.Round(point.Latitude * 1e5);
+            var lng = (int)Math.Round(point.Longitude * 1e5);
+            Write(builder, lat - lastLat);
+            Write(builder, lng - lastLng);
+            lastLat = lat;
+            lastLng = lng;
+        }
+        return builder.ToString();
+    }
+
+    private static void Write(System.Text.StringBuilder builder, int value)
+    {
+        var shifted = value < 0 ? ~(value << 1) : value << 1;
+        while (shifted >= 0x20)
+        {
+            builder.Append((char)((0x20 | (shifted & 0x1f)) + 63));
+            shifted >>= 5;
+        }
+        builder.Append((char)(shifted + 63));
+    }
+
     private static int Next(string encoded, ref int index)
     {
         int result = 0, shift = 0, b;

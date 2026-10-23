@@ -9,6 +9,7 @@ using WonderFleet.Application.Features.Notifications;
 using WonderFleet.Application.Features.Telemetry;
 using WonderFleet.Domain.Entities;
 using WonderFleet.Domain.Enums;
+using WonderFleet.Domain.Services;
 
 namespace WonderFleet.Application.Features.Fleet;
 
@@ -371,13 +372,17 @@ internal sealed class FleetService(
         try
         {
             var geo = await maps.GeocodeAsync(input.Address.Trim(), ct);
-            return geo is null ? null : new GeocodeLike(geo.City, geo.Location.Latitude, geo.Location.Longitude);
+            if (geo is not null) return new GeocodeLike(geo.City, geo.Location.Latitude, geo.Location.Longitude);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "Geocoding failed for a trip address; continuing without coordinates");
-            return null;
+            logger.LogWarning(ex, "Geocoding is unavailable; falling back to the built-in gazetteer");
         }
+
+        // Without any coordinates a shipment has no position to plan from and no planned
+        // distance, so an approximate town-level fix is worth far more than nothing.
+        var approximate = NigeriaPlaces.Locate(input.Address);
+        return approximate is null ? null : new GeocodeLike(null, approximate.Latitude, approximate.Longitude);
     }
 
     private async Task<double?> PlannedDistanceAsync(GeocodeLike? from, GeocodeLike? to, DateTimeOffset loading, DateTimeOffset now, CancellationToken ct)
@@ -387,13 +392,16 @@ internal sealed class FleetService(
         {
             var departure = loading > now.AddMinutes(2) ? loading : now.AddMinutes(2);
             var routes = await maps.ComputeRoutesAsync(new GeoPoint(from.Latitude, from.Longitude), new GeoPoint(to.Latitude, to.Longitude), departure, ct);
-            return routes.Count == 0 ? null : Math.Round(routes[0].DistanceKm, 1);
+            if (routes.Count > 0) return Math.Round(routes[0].DistanceKm, 1);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "Route distance lookup failed; planned distance left empty");
-            return null;
+            logger.LogWarning(ex, "Route distance lookup failed; estimating from the direct line");
         }
+
+        // The same 1.25 road factor the fuel planner uses, so the two agree when neither has
+        // live road data. An estimate keeps distance, fuel and CO2 meaningful on the trip page.
+        return Math.Round(GeoMath.HaversineMeters(from.Latitude, from.Longitude, to.Latitude, to.Longitude) / 1000 * 1.25, 1);
     }
 }
 

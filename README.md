@@ -512,6 +512,35 @@ the load, and refuse combinations that cannot travel together.
 
 ---
 
+## The map, and the second Google key
+
+The admin map works with no key at all: it plots real coordinates on a latitude/longitude grid
+with Nigerian towns as anchors, and links out to Google Maps for roads and imagery.
+
+To get real roads and satellite tiles in the app, set **one extra variable on the frontend**:
+
+```bash
+VITE_GOOGLE_MAPS_API_KEY=AIza...
+```
+
+This is **not** the server's `Google__ApiKey`, and the two should not be shared:
+
+| | Server key (`Google__ApiKey`) | Browser key (`VITE_GOOGLE_MAPS_API_KEY`) |
+|---|---|---|
+| Used by | the API, from Render | the admin app, in the visitor's browser |
+| APIs | Geocoding, Places (New), Routes, Weather | **Maps JavaScript API** (enable it too) |
+| Restriction | by API — Render's outbound IPs are shared, so IP restriction is unreliable | by **HTTP referrer**: `wonderfleet.org/*` and `*.wonderfleet.org/*` |
+| Visible to users | no | **yes** — it ships in the built JavaScript |
+
+A browser key is public by design; the referrer restriction is what stops other sites using it,
+so set that restriction before the key goes live. Vite bakes the value in at build time, so set
+it in Vercel's **Production** environment and redeploy — editing it alone changes nothing.
+
+If the key is missing, rejected, or its referrer is blocked, the app quietly falls back to the
+coordinate grid rather than showing an empty panel.
+
+---
+
 ## Hosting Postgres somewhere else
 
 Nothing above is tied to the local container. `ConnectionStrings__Default` accepts either a

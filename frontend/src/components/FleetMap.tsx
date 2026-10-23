@@ -5,6 +5,8 @@ import { Crosshair, MapPin, Maximize2, Minus, Plus, Truck } from '@/components/i
 import { Modal, Spinner } from '@/components/ui'
 import { humidity as humidityText, since, temperature as temperatureText } from '@/lib/format'
 import { useTripTrack } from '@/lib/queries'
+import { GoogleFleetMap } from '@/components/GoogleFleetMap'
+import { hasGoogleMapsKey } from '@/lib/googleMaps'
 import type { MapMarker, StatusCounts, TrackPoint } from '@/lib/types'
 
 /**
@@ -109,6 +111,38 @@ function ticks(min: number, max: number): number[] {
 const label = (value: number, axis: 'N' | 'E') =>
   `${Number.isInteger(value) ? value : Number(value.toFixed(2))}°${axis}`
 
+/**
+ * Fleet status counts, floating over whichever map is drawn.
+ *
+ * Narrow and translucent because it sits on top of the map and must hide as little of it as
+ * possible. It prefers the server's counts, which cover the whole fleet, and only derives
+ * them from the visible markers when none were given.
+ */
+function Legend({ counts, markers }: { counts?: StatusCounts; markers: MapMarker[] }) {
+  const legend = counts ?? {
+    live: markers.filter((m) => m.sensorStatus !== 'Offline').length,
+    inTransit: markers.filter((m) => m.tripStatus === 'InTransit').length,
+    delay: markers.filter((m) => m.sensorStatus === 'Warning').length,
+    stopped: markers.filter((m) => m.sensorStatus === 'Offline').length,
+  }
+  return (
+    <dl className="absolute bottom-3 left-3 z-10 w-36 overflow-hidden rounded-lg border border-line bg-surface/90 text-xs shadow-pop backdrop-blur-sm">
+      {([
+        ['Live', legend.live, 'bg-normal-500'],
+        ['In transit', legend.inTransit, 'bg-info-500'],
+        ['Delay', legend.delay, 'bg-warning-500'],
+        ['Stopped', legend.stopped, 'bg-critical-500'],
+      ] as const).map(([term, value, dot]) => (
+        <div key={term} className="flex items-center gap-2 px-2.5 py-1">
+          <span className={clsx('h-1.5 w-1.5 shrink-0 rounded-full', dot)} aria-hidden />
+          <dt className="flex-1 text-ink-soft">{term}</dt>
+          <dd className="tabular font-semibold">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
 function MapCanvas({ markers, bounds, trail, height, active, onSelect, onBoundsChange, recenterTo, counts, lockTouch = false }: {
   markers: MapMarker[]
   bounds: Bounds
@@ -138,13 +172,6 @@ function MapCanvas({ markers, bounds, trail, height, active, onSelect, onBoundsC
   const path = (trail ?? [])
     .map((point) => { const p = project(point.latitude, point.longitude); return `${p.x},${p.y}` })
     .join(' ')
-
-  const legend = counts ?? {
-    live: markers.filter((m) => m.sensorStatus !== 'Offline').length,
-    inTransit: markers.filter((m) => m.tripStatus === 'InTransit').length,
-    delay: markers.filter((m) => m.sensorStatus === 'Warning').length,
-    stopped: markers.filter((m) => m.sensorStatus === 'Offline').length,
-  }
 
   function onPointerDown(event: React.PointerEvent) {
     if (!onBoundsChange) return
@@ -333,21 +360,7 @@ function MapCanvas({ markers, bounds, trail, height, active, onSelect, onBoundsC
         </p>
       )}
 
-      {/* Kept narrow and translucent: it sits over the map and must hide as little as possible. */}
-      <dl className="absolute bottom-3 left-3 z-10 w-36 overflow-hidden rounded-lg border border-line bg-surface/90 text-xs shadow-pop backdrop-blur-sm">
-        {([
-          ['Live', legend.live, 'bg-normal-500'],
-          ['In transit', legend.inTransit, 'bg-info-500'],
-          ['Delay', legend.delay, 'bg-warning-500'],
-          ['Stopped', legend.stopped, 'bg-critical-500'],
-        ] as const).map(([term, value, dot]) => (
-          <div key={term} className="flex items-center gap-2 px-2.5 py-1">
-            <span className={clsx('h-1.5 w-1.5 shrink-0 rounded-full', dot)} aria-hidden />
-            <dt className="flex-1 text-ink-soft">{term}</dt>
-            <dd className="tabular font-semibold">{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <Legend counts={counts} markers={markers} />
 
       {onBoundsChange && (
         <div className="absolute right-4 top-10 z-10 flex flex-col items-center gap-2">
@@ -395,6 +408,13 @@ export function FleetMap({ markers, height = 380, expandable = false, counts }: 
 }) {
   const [active, setActive] = useState<MapMarker | null>(null)
   const [expanded, setExpanded] = useState(false)
+  /**
+   * Google when a key is configured, the coordinate grid otherwise — and also the grid if
+   * the key turns out to be unusable at runtime (wrong referrer, API not enabled, no quota),
+   * so a misconfiguration degrades to a working map instead of an empty panel.
+   */
+  const [googleFailed, setGoogleFailed] = useState<string | null>(null)
+  const useGoogle = hasGoogleMapsKey && !googleFailed
 
   const plotted = useMemo(
     () => markers.filter((marker) => Number.isFinite(marker.latitude) && Number.isFinite(marker.longitude)),
@@ -439,16 +459,23 @@ export function FleetMap({ markers, height = 380, expandable = false, counts }: 
 
   return (
     <div className="relative">
-      <MapCanvas
-        markers={plotted}
-        bounds={inlineView}
-        height={height}
-        active={expanded ? null : active}
-        onSelect={setActive}
-        counts={counts}
-        onBoundsChange={expandable ? setInlineView : undefined}
-        recenterTo={expandable ? (plotted.length > 0 ? fit(plotted) : NIGERIA) : undefined}
-      />
+      {useGoogle ? (
+        <div className="relative" style={{ height }}>
+          <GoogleFleetMap markers={plotted} height={height} onSelect={setActive} onUnavailable={setGoogleFailed} />
+          <Legend counts={counts} markers={plotted} />
+        </div>
+      ) : (
+        <MapCanvas
+          markers={plotted}
+          bounds={inlineView}
+          height={height}
+          active={expanded ? null : active}
+          onSelect={setActive}
+          counts={counts}
+          onBoundsChange={expandable ? setInlineView : undefined}
+          recenterTo={expandable ? (plotted.length > 0 ? fit(plotted) : NIGERIA) : undefined}
+        />
+      )}
 
       {expandable && (
         <button
@@ -471,18 +498,32 @@ export function FleetMap({ markers, height = 380, expandable = false, counts }: 
         bodyClassName="p-0"
         onClose={() => setExpanded(false)}
       >
-        <MapCanvas
-          markers={plotted}
-          bounds={expandedBounds}
-          trail={points}
-          height="min(70vh, 720px)"
-          lockTouch
-          active={active}
-          onSelect={setActive}
-          counts={counts}
-          onBoundsChange={(next) => { setSteered(true); setFrame(next) }}
-          recenterTo={fit([...plotted, ...points])}
-        />
+        {useGoogle ? (
+          <div className="relative" style={{ height: 'min(70vh, 720px)' }}>
+            <GoogleFleetMap
+              markers={plotted}
+              trail={points}
+              height="min(70vh, 720px)"
+              satellite
+              onSelect={setActive}
+              onUnavailable={setGoogleFailed}
+            />
+            <Legend counts={counts} markers={plotted} />
+          </div>
+        ) : (
+          <MapCanvas
+            markers={plotted}
+            bounds={expandedBounds}
+            trail={points}
+            height="min(70vh, 720px)"
+            lockTouch
+            active={active}
+            onSelect={setActive}
+            counts={counts}
+            onBoundsChange={(next) => { setSteered(true); setFrame(next) }}
+            recenterTo={fit([...plotted, ...points])}
+          />
+        )}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-2.5 text-xs text-ink-soft">
           <span className="flex items-center gap-2">
             {track.isFetching ? <Spinner size={13} /> : <MapPin size={13} className="text-ink-faint" />}
